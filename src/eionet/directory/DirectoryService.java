@@ -176,11 +176,18 @@ public static Hashtable getRole(String roleID ) throws DirServiceException {
      
     }
 
+    public static Hashtable getPerson(String uId) throws DirServiceException {
+      if (dir ==null)
+        dir = getDirService();
+     return dir.getPerson(uId);
+     
+    }
+
+
     public static Hashtable getOrganisation(String orgId) throws DirServiceException {
       if (dir ==null)
         dir = getDirService();
      return dir.getOrganisation(orgId);
-     
     }
     
 
@@ -189,9 +196,10 @@ public static Hashtable getRole(String roleID ) throws DirServiceException {
       if (dir ==null)
         dir = getDirService();
 
+
   } catch (Exception e ) {
     System.out.println("e= " + e.toString());
   }
- } */
+ }  */
 
 }

@@ -88,6 +88,10 @@ public interface DirectoryServiceIF {
     public final String ORG_OCCUPANTS_ATTR = "OCCUPANTS";        
     public final String ORG_HOMEPAGE_ATTR = "HOMEPAGE";            
 
+    public final String PERSON_UID_ATTR = "UID";            
+    public final String PERSON_FULLNAME_ATTR = "FULLNAME";            
+    public final String PERSON_ORGID_ATTR = "ORG_ID";            
+
     //Url in Circa for logged in users
     public final String ORG_MEMBERS_URL_ATTR = "URL_MEMBERS";        
     //URL in Circa for public access
@@ -98,6 +102,13 @@ public interface DirectoryServiceIF {
   * Email of the given role
   */
   public String getRoleMailAddress(String roleId ) throws DirServiceException;
+
+
+  /**
+  * Person with the given uid
+  * Miscannelaous data in a HASH
+  */
+  public Hashtable getPerson (String uId) throws DirServiceException;
 
 
   /**
