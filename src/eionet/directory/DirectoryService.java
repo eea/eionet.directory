@@ -24,8 +24,10 @@
 package eionet.directory;
 
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
+import eionet.directory.dto.RoleDTO;
 import eionet.directory.modules.DirectoryService25Impl;
 import eionet.directory.modules.FileServiceImpl;
 
@@ -80,6 +82,19 @@ public static Hashtable getRole(String roleID ) throws DirServiceException {
 
 }
 
+/**
+*
+*/
+public static RoleDTO getRoleDTO(String roleID ) throws DirServiceException {
+
+  if (dir ==null) 
+    dir = getDirService();
+  
+  RoleDTO role = dir.getRoleDTO(roleID);
+
+  return role;
+
+}
 
 
  /**

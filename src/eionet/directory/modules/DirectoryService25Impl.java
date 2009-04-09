@@ -26,11 +26,17 @@ package eionet.directory.modules;
 import eionet.directory.DirectoryServiceIF;
 import eionet.directory.DirServiceException;
 import eionet.directory.FileServiceIF;
+import eionet.directory.dto.MemberDTO;
+import eionet.directory.dto.OrganisationDTO;
+import eionet.directory.dto.RoleDTO;
 
 import javax.naming.NameClassPair;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.Hashtable;
-import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.ArrayList;
 
@@ -83,13 +89,12 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	private String circaOrgPref2;
 	private String circaSite;
 	
-	private String systemUser;
-	private String systemPwd;
-	
 	private String orgDir;
 	private String orgIdAttr;
 	
 	private DirContext ctx = null;
+	
+	private List<Attribute> subroleMembers;
 	
 	/**
 	 * 
@@ -254,6 +259,151 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	}
 	
 	/**
+	 * Gets the role for the given ID.
+	 *
+	 * @param String roleID
+	 * @return RoleDTO
+	 */
+	public RoleDTO getRoleDTO(String roleID) throws DirServiceException {
+		
+		String searchFilter;
+		RoleDTO role = new RoleDTO();
+		
+		if (ctx == null)
+			ctx = sessionLogin();
+		
+		try {
+			searchFilter="(&(objectclass=groupOfUniqueNames)(" + roleAttr + "=" + roleID + "))";
+			NamingEnumeration searchResults = searchSubTree(ctx, searchFilter);
+			//KL021031
+			if (searchResults!=null && searchResults.hasMore()){
+				
+				SearchResult sr = (SearchResult)searchResults.next();
+				
+				String roleName = (String)sr.getAttributes().get(roleAttr).get();
+				String description="", mail="";
+				try {
+					Attribute descAttr = (Attribute)sr.getAttributes().get(roleDesc);
+					if (descAttr != null )
+						description = (String)descAttr.get();
+					
+					Attribute mAttr = (Attribute)sr.getAttributes().get(mailAttr);              
+					if (mAttr != null)
+						mail = (String)mAttr.get();
+					
+				}
+				catch (NullPointerException ne) {
+				}
+				
+				Attribute uniqueMember = null;          
+				try {
+					uniqueMember = sr.getAttributes().get("uniqueMember");
+				}
+				catch (Exception e ){
+					throw new DirServiceException("Error getting occupants for role : " + roleID + "\n" + e.toString());
+				}
+				
+				List<RoleDTO> subroles = getSubroles(roleID); 
+				List<MemberDTO> members = parseMembers(uniqueMember);
+
+				role.setId(roleID);
+				role.setName(roleName);
+				role.setMail(mail);
+				role.setDescription(description);
+				role.setMembersUrl(getMembersRoleUrl(roleID));
+				if(members != null)
+					role.setMembers(members);
+				if(subroles != null)
+					role.setSubroles(subroles);
+			} //end if searchResults.hasMore()
+			else
+				throw new DirServiceException("No role in directory " + roleID );
+			
+		}
+		catch (NoSuchElementException nose){
+		}
+		catch (NamingException ne) {
+			throw new DirServiceException("NamingException, if getting role information for role ID= " + roleID + ": " + ne.toString());
+		}
+		catch (Exception e) {
+			throw new DirServiceException("Getting role information for role ID= " + roleID + " failed : " + e.toString());
+		}
+		
+		return role;
+	}
+	
+	/**
+	 * Gets subroles of given role.
+	 *
+	 * @param String roleID
+	 * @return Subroles
+	 */
+	private List<RoleDTO> getSubroles(String roleID) throws DirServiceException {
+		
+		String searchFilter;
+		List<RoleDTO> roles = new ArrayList<RoleDTO>();
+		
+		if (ctx == null)
+			ctx = sessionLogin();
+		
+		subroleMembers = new ArrayList<Attribute>();
+		
+		try {
+			// Search for objects that have those matching attributes
+			searchFilter="(&(objectclass=groupOfUniqueNames))";
+			String[] attrIDs = {"cn", "uniqueMember", "description"};
+			
+			String query = generateQuery(roleID);
+
+			NamingEnumeration searchResults = searchSubTree(ctx, query, searchFilter, attrIDs,SearchControls.ONELEVEL_SCOPE);
+
+			while(searchResults!=null && searchResults.hasMore()){
+				
+				RoleDTO dto = new RoleDTO();
+				SearchResult sr = (SearchResult)searchResults.next();
+				String cn = (String)sr.getAttributes().get("cn").get();
+				String description = (String)sr.getAttributes().get("description").get();
+				
+				dto.setId(cn);
+				dto.setDescription(description);
+				Attribute um = sr.getAttributes().get("uniqueMember");
+				if(um != null)
+					subroleMembers.add(um);
+				/*List<MemberDTO> members = parseMembers(um);
+				if(members != null && members.size()>0){
+					dto.setMembers(members);
+				}*/
+				roles.add(dto);
+			}
+			
+		}
+		catch (NoSuchElementException nose){
+		}
+		catch (NamingException ne) {
+			throw new DirServiceException("NamingException, if getting role information for role ID= " + roleID + ": " + ne.toString());
+		}
+		catch (Exception e) {
+			throw new DirServiceException("Getting role information for role ID= " + roleID + " failed : " + e.toString());
+		}
+		
+		return roles;
+	}
+	
+	private String generateQuery(String roleId) throws Exception {
+		String ret = "ou=Roles";
+		StringTokenizer st = new StringTokenizer(roleId,"-");
+		String previous = "";
+		while(st.hasMoreTokens()){
+			if(!previous.equals(""))
+				previous = previous + "-";
+			previous = previous + st.nextToken();
+			ret = "cn="+previous+","+ret;
+		}
+		
+		return ret;
+	}
+	
+	/**
 	 * 
 	 * @param ctx
 	 * @param searchFilter
@@ -274,7 +424,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	 * @throws DirServiceException
 	 */
 	private NamingEnumeration searchSubTree(DirContext ctx, String filter, String[] attrIDs) throws DirServiceException {
-		NamingEnumeration ne = searchSubTree(ctx, "", filter, attrIDs);
+		NamingEnumeration ne = searchSubTree(ctx, "", filter, attrIDs, SearchControls.SUBTREE_SCOPE);
 		return ne;
 	}
 	
@@ -287,7 +437,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	 * @return
 	 * @throws DirServiceException
 	 */
-	private NamingEnumeration searchSubTree(DirContext ctx, String name, String filter, String[] attrIDs) throws DirServiceException {
+	private NamingEnumeration searchSubTree(DirContext ctx, String name, String filter, String[] attrIDs, int scope) throws DirServiceException {
 		NamingEnumeration ne = null;
 		
 		try	{
@@ -296,7 +446,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 			if ( attrIDs != null)
 				ctls.setReturningAttributes(attrIDs);
 			
-			ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+			ctls.setSearchScope(scope);
 			NamingEnumeration answer = ctx.search(name, filter, ctls);
 			ne = answer;
 		}
@@ -427,7 +577,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 		Vector roles = new Vector();
 		try {
 			searchFilter="(objectclass=groupOfUniqueNames)";
-			NamingEnumeration searchResults = searchSubTree(ctx, "ou=Roles", searchFilter, null);
+			NamingEnumeration searchResults = searchSubTree(ctx, "ou=Roles", searchFilter, null, SearchControls.SUBTREE_SCOPE);
 			while (searchResults != null && searchResults.hasMore()){
 				
 				SearchResult sr = (SearchResult)searchResults.next();
@@ -454,6 +604,73 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 		}
 		
 		return roles;
+	}
+	
+	/**
+	 * 
+	 * @param um
+	 * @return
+	 * @throws DirServiceException
+	 */
+	private List<MemberDTO> parseMembers(Attribute um) throws DirServiceException {
+		
+		List<MemberDTO> members = new ArrayList<MemberDTO>();
+		if (um == null )
+			return members;
+		
+		try {
+			String pattern1 = "uid=";
+			
+			List<String> subMembers = new ArrayList<String>();
+			
+			if(subroleMembers != null){
+				for(Iterator<Attribute> it=subroleMembers.iterator();it.hasNext();){
+					Attribute at = it.next();
+					NamingEnumeration nu   = at.getAll();
+					while(nu.hasMore()){
+						String s = (String)(nu.next());
+						int pos1 = s.indexOf(pattern1);
+						if (pos1>=0){
+							int pos2 = s.indexOf(",", pos1 + pattern1.length());
+							if (pos2<0)
+								s = s.substring(pos1 + pattern1.length()).trim();
+							else
+								s = s.substring(pos1 + pattern1.length(), pos2).trim();
+							if (s.length()>0){
+								subMembers.add(s);
+							}
+						}
+					}
+				}
+			}
+			
+			NamingEnumeration nu   = um.getAll();
+			while(nu.hasMore()){
+				String s = (String)(nu.next());
+				int pos1 = s.indexOf(pattern1);
+				if (pos1>=0){
+					int pos2 = s.indexOf(",", pos1 + pattern1.length());
+					if (pos2<0)
+						s = s.substring(pos1 + pattern1.length()).trim();
+					else
+						s = s.substring(pos1 + pattern1.length(), pos2).trim();
+					if (s.length()>0){
+						if(!subMembers.contains(s)){
+							MemberDTO member = getMember(s);
+							members.add(member);
+						}
+					}
+				}
+			}
+		}
+		catch (NamingException ne) {
+			throw new DirServiceException( "Error getting user info" + ne.toString());
+		}
+		catch (NullPointerException nu){
+			throw new DirServiceException( "Error getting user info" + nu.toString());
+		}
+		
+		return members;
 	}
 	
 	/**
@@ -529,6 +746,81 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 		} 
 		
 		return person;
+	}
+	
+	/**
+	 * 
+	 */
+	public MemberDTO getMember (String uId) throws DirServiceException {
+		
+		String searchFilter;
+		MemberDTO member=new MemberDTO();
+		
+		if (ctx == null)
+			ctx = sessionLogin();
+		
+		try {
+			
+			// Search for objects that have those matching attributes
+
+			searchFilter="(&(uid="+uId+"))";
+			String[] attrIDs = {"uid", "mail", "cn", "description", "telephoneNumber","facsimileTelephoneNumber","o"};
+			
+			NamingEnumeration searchResults = searchSubTree(ctx, "ou=Users", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
+			//KL021031
+			while(searchResults!=null && searchResults.hasMore()){
+				
+				SearchResult sr = (SearchResult)searchResults.next();
+				Attribute cn = sr.getAttributes().get("cn");
+				Attribute description = sr.getAttributes().get("description");
+				Attribute mail = sr.getAttributes().get("mail");
+				Attribute phone = sr.getAttributes().get("telephoneNumber");
+				Attribute fax = sr.getAttributes().get("facsimileTelephoneNumber");
+				Attribute uid = sr.getAttributes().get("uid");
+				Attribute org = sr.getAttributes().get("o");
+				
+				if(uid != null)
+					member.setUid((String)uid.get());
+				if(description != null)
+					member.setDescription((String)description.get());
+				if(cn != null)
+					member.setFullName((String)cn.get());
+				if(mail != null)
+					member.setMail((String)mail.get());
+				if(phone != null)
+					member.setPhone((String)phone.get());
+				if(fax != null)
+					member.setFax((String)fax.get());
+				if(org != null){
+					String orgId = (String)org.get();
+					if (orgId.indexOf("@") != -1){
+						orgId = orgId.substring(0, orgId.indexOf("@"));
+						if(orgId != null && orgId.length()>0){
+							OrganisationDTO organisation = getOrganisationDTO(orgId);
+							member.setOrganisation(organisation);
+						}
+					} else if(orgId.indexOf("@") == -1 && orgId.length()>0){
+						OrganisationDTO organisation = getOrganisationDTO(orgId);
+						if(organisation.getName() == null || organisation.getName().equals(""))
+							organisation.setName(orgId);
+						member.setOrganisation(organisation);
+					}
+				}
+					
+				
+			} //end if searchResults.hasMore()
+			
+		}
+		catch (NamingException ne) {
+			System.out.println("NamingException, if getting user information for user ID= " + uId + ": " + ne.toString());
+			//throw new DirServiceException("NamingException, if getting user information for user ID= " + uId + ": " + ne.toString());
+		}
+		catch (Exception e) {
+			System.out.println("Getting user information for user ID= " + uId + " failed : " + e.toString());
+			//throw new DirServiceException("Getting user information for user ID= " + uId + " failed : " + e.toString());
+		}
+		
+		return member;
 	}
 	
 	/**
@@ -648,6 +940,48 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 		}
 		catch (Exception e) {
 			throw new DirServiceException("Failed getting information for organisation ID=" + orgId + ": " + e.toString());
+		}
+		
+		return org;
+	}
+	
+	/**
+	 * 
+	 */
+	public OrganisationDTO getOrganisationDTO(String orgId) throws DirServiceException {
+		
+		OrganisationDTO org = new OrganisationDTO();
+		String searchFilter = null;
+		try {
+			if (ctx == null)
+				ctx = sessionLogin();
+			
+			searchFilter="(&(objectclass=groupOfUniqueNames)(cn=" + orgId + "))";
+			String[] attrIDs = {"o"};
+			
+			NamingEnumeration searchResults = searchSubTree(ctx, "ou=Organisations", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
+			if (searchResults!=null && searchResults.hasMore()) {
+				
+				SearchResult sr = (SearchResult)searchResults.next();
+				
+				Attribute o =  sr.getAttributes().get("o"); 
+				
+				String url = getOrgUrl(orgId, false);
+				
+				org.setOrgId(orgId);
+				if(o != null)
+					org.setName(o.get().toString());
+				if(url != null)
+					org.setUrl(url);
+			} //end if searchResults.hasMore()
+		}
+		catch (NamingException ne) {
+			System.out.println("NamingException when getting information for organisation (ID= " + orgId + "): " + ne.toString());
+			//throw new DirServiceException("NamingException when getting information for organisation (ID= " + orgId + "): " + ne.toString());
+		}
+		catch (Exception e) {
+			System.out.println("Failed getting information for organisation ID=" + orgId + ": " + e.toString());
+			//throw new DirServiceException("Failed getting information for organisation ID=" + orgId + ": " + e.toString());
 		}
 		
 		return org;

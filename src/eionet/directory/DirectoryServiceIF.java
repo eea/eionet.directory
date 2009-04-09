@@ -24,7 +24,10 @@
 package eionet.directory;
 
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
+
+import eionet.directory.dto.RoleDTO;
 
 
 /**
@@ -115,7 +118,12 @@ public interface DirectoryServiceIF {
   * Role of the given ID
   */
   public Hashtable getRole (String roleId ) throws DirServiceException;
-
+  
+  /**
+   * Role of the given ID
+   */
+   public RoleDTO getRoleDTO (String roleId ) throws DirServiceException;
+  
 /**
  * Login to the LDAP server with credentials
  * @param String userID, String userPwd
