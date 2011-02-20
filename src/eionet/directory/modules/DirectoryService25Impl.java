@@ -79,16 +79,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	private String userFullNameAttr;			//KL 020114
 	private String mailAttr ;
 	
-	private String circaVirtual;
-	private String circaUrl;
-	private String circaPublicUrl; //KL030530
-	private String circaRolePref;
-	private String circaRoleSuff;
-	
-	private String circaOrgPref;
-	private String circaOrgPref2;
-	private String circaSite;
-	
 	private String orgDir;
 	private String orgIdAttr;
 	
@@ -114,17 +104,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 		mailAttr = fsrv.getStringProperty(FileServiceIF.LDAP_ATTR_MAIL );
 		userFullNameAttr = fsrv.getStringProperty(FileServiceIF.LDAP_ATTR_FULLNAME);
 		
-		circaVirtual = fsrv.getStringProperty(FileServiceIF.CIRCA_VCIRCA);
-		circaUrl = fsrv.getStringProperty(FileServiceIF.CIRCA_URL_MEMBERS);
-		circaPublicUrl = fsrv.getStringProperty(FileServiceIF.CIRCA_URL_PUBLIC);
-		circaRolePref = fsrv.getStringProperty(FileServiceIF.CIRCA_ROLE_FN_PREFIX );
-		circaRoleSuff = fsrv.getStringProperty(FileServiceIF.CIRCA_ROLE_FN_SUFFIX );    
-		
 		orgIdAttr = fsrv.getStringProperty(FileServiceIF.LDAP_ATTR_ORGID);
 		orgDir = fsrv.getStringProperty(FileServiceIF.LDAP_ORGANISATION_DIR);
-		circaOrgPref=fsrv.getStringProperty(FileServiceIF.CIRCA_ORG_FN_PREFIX);
-		circaOrgPref2=fsrv.getStringProperty(FileServiceIF.CIRCA_ORG_FN_PREFIX2);
-		circaSite=fsrv.getStringProperty(FileServiceIF.CIRCA_SITE);
 		
 		try {
 			ldapBackUpUrl=fsrv.getStringProperty(FileServiceIF.LDAP_BACKUP);
@@ -139,7 +120,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	 */
 	private DirContext sessionLogin() throws DirServiceException {
 		
-		Hashtable env = new Hashtable();
+		Hashtable<String,String> env = new Hashtable<String,String>();
 		String ldapCtxUrl = ldapUrl + ldapCtx;
 		env.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_FACTORY);
 		env.put(Context.PROVIDER_URL, ldapCtxUrl);
@@ -192,10 +173,11 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	 * @param String roleID
 	 * @return Role
 	 */
-	public Hashtable getRole(String roleID) throws DirServiceException {
+	@SuppressWarnings("deprecation")
+	public Hashtable<String,Object> getRole(String roleID) throws DirServiceException {
 		
 		String searchFilter;
-		Hashtable role = null;
+		Hashtable<String,Object> role = null;
 		
 		if (ctx == null)
 			ctx = sessionLogin();
@@ -231,15 +213,13 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 					throw new DirServiceException("Error getting occupants for role : " + roleID + "\n" + e.toString());
 				}
 				
-				Vector occupants = parseOccupants(uniqueMember);
+				Vector<String> occupants = parseOccupants(uniqueMember);
 				
-				role = new Hashtable();
+				role = new Hashtable<String,Object>();
 				role.put(ROLE_ID_ATTR, roleID );
 				role.put(ROLE_NAME_ATTR, roleName );
 				role.put(ROLE_MAIL_ATTR, mail );
 				role.put(ROLE_DESCRIPTION_ATTR, description );
-				role.put(ROLE_URL_ATTR, getPublicRoleUrl( roleID ) ); 
-				role.put(ROLE_MEMBERS_URL_ATTR, getMembersRoleUrl( roleID ) ); 
 				role.put(ROLE_OCCUPANTS_ATTR, occupants);
 			} //end if searchResults.hasMore()
 			else
@@ -310,7 +290,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 				role.setName(roleName);
 				role.setMail(mail);
 				role.setDescription(description);
-				role.setMembersUrl(getMembersRoleUrl(roleID));
 				if(members != null)
 					role.setMembers(members);
 				if(subroles != null)
@@ -458,45 +437,12 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	}
 	
 	/**
-	 * 
-	 */
-	public String getPublicRoleUrl(String role) throws DirServiceException {
-		return getRoleUrl(role, true);
-	}
-	
-	/**
-	 * 
-	 */
-	public String getMembersRoleUrl(String role) throws DirServiceException {
-		return getRoleUrl(role, false);
-	}
-	
-	/**
-	 * Returns url of the role in CIRCA
-	 * @param String role: ID of the role
-	 * @param boolean isPublic: public UL or non-public URL
-	 * @return String
-	 */
-	private String getRoleUrl(String role, boolean isPublic) throws DirServiceException {
-		
-		StringBuffer url = new StringBuffer();
-		if (!isPublic)
-			url.append(circaUrl);
-		else
-			url.append(circaPublicUrl);
-		
-		url.append(circaVirtual).append(circaRolePref).append(role).append(circaRoleSuff);
-		
-		return url.toString();
-	}
-	
-	/**
 	 * Returns mail addresses of the role
 	 * @param String role: ID of the role
 	 * @return String
 	 */
 	public String getRoleMailAddress(String roleID) throws DirServiceException {
-		Hashtable role = getRole(roleID);
+		Hashtable<String,Object> role = getRole(roleID);
 		return (String)role.get(ROLE_MAIL_ATTR);
 	}
 	
@@ -511,7 +457,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 		if (userPwd==null || userPwd.length()==0)
 			throw new SecurityException("Authorisation failed: user password cannot be empty");
 		
-		Hashtable env = new Hashtable();
+		Hashtable<String,String> env = new Hashtable<String,String>();
 		
 		String ldapUser;
 		String ldapCtxUrl = ldapUrl + ldapCtx;
@@ -556,11 +502,11 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	/**
 	 * 
 	 */
-	public Vector getOccupants(String roleID)    throws DirServiceException {
+	public Vector<String> getOccupants(String roleID)    throws DirServiceException {
 		if (ctx == null)
 			ctx = sessionLogin();
-		Hashtable role = getRole(roleID);
-		return (Vector)role.get(ROLE_OCCUPANTS_ATTR);
+		Hashtable<String,Object> role = getRole(roleID);
+		return (Vector<String>)role.get(ROLE_OCCUPANTS_ATTR);
 	}
 	
 	/**
@@ -568,13 +514,13 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	 *
 	 * @param String userID
 	 */
-	public Vector getRoles(String userID) throws DirServiceException {
+	public Vector<String> getRoles(String userID) throws DirServiceException {
 
 		if (ctx == null)
 			ctx = sessionLogin();
 
 		String searchFilter;
-		Vector roles = new Vector();
+		Vector<String> roles = new Vector<String>();
 		try {
 			searchFilter="(objectclass=groupOfUniqueNames)";
 			NamingEnumeration searchResults = searchSubTree(ctx, "ou=Roles", searchFilter, null, SearchControls.SUBTREE_SCOPE);
@@ -584,7 +530,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 				String roleName = (String)sr.getAttributes().get(roleAttr).get();
 				Attribute uniqueMember = sr.getAttributes().get("uniqueMember");
 				if (uniqueMember!=null){
-					Vector v = parseOccupants(uniqueMember);
+					Vector<String> v = parseOccupants(uniqueMember);
 					if (v!=null && v.contains(userID))
 						roles.add(roleName);
 				}
@@ -679,9 +625,9 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	 * @return
 	 * @throws DirServiceException
 	 */
-	private Vector parseOccupants(Attribute um) throws DirServiceException {
+	private Vector<String> parseOccupants(Attribute um) throws DirServiceException {
 		
-		Vector userNames = new Vector();
+		Vector<String> userNames = new Vector<String>();
 		if (um == null )
 			return userNames;
 		
@@ -715,11 +661,11 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	/**
 	 * 
 	 */
-	public Hashtable getPerson (String uId) throws DirServiceException {
+	public Hashtable<String,String> getPerson (String uId) throws DirServiceException {
 		
 		DirContext tmpCtx = (ctx != null) ?	ctx : sessionLogin();
 		String fullName = uId, orgId="";
-		Hashtable person=new Hashtable();
+		Hashtable<String,String> person=new Hashtable<String,String>();
 		
 		try {
 			Attributes pAttrs = tmpCtx.getAttributes("uid=" + uId + ", " + userDir  );
@@ -831,7 +777,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	public String getFullName(String user) throws DirServiceException {
 		
 		String fullName=user;
-		Hashtable person=getPerson(user);
+		Hashtable<String,String> person=getPerson(user);
 		fullName=(String)person.get(PERSON_FULLNAME_ATTR);
 		return fullName;
 		
@@ -840,9 +786,9 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	/**
 	 * 
 	 */
-	public Vector listOrganisations() throws DirServiceException {
+	public Vector<String> listOrganisations() throws DirServiceException {
 		
-		Vector v = new Vector();
+		Vector<String> v = new Vector<String>();
 		DirContext tmpCtx = (ctx != null) ?	ctx : sessionLogin();
 		NamingEnumeration ne = null;
 		try {
@@ -887,9 +833,9 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	/**
 	 * 
 	 */
-	public Hashtable getOrganisation(String orgId) throws DirServiceException {
+	public Hashtable<String,Object> getOrganisation(String orgId) throws DirServiceException {
 		
-		Hashtable org = null;
+		Hashtable<String,Object> org = null;
 		String searchFilter = null;
 		try {
 			if (ctx == null)
@@ -903,8 +849,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 				
 				String name =  getAttributeValue(sr,"givenname"); 
 				String description = getAttributeValue(sr,"description");
-				String mail = getAttributeValue(sr,"mail");
-				String phone = getAttributeValue(sr,"telephonenumber");
+				//String mail = getAttributeValue(sr,"mail");
+				//String phone = getAttributeValue(sr,"telephonenumber");
 				String fax = getAttributeValue(sr,"fax");
 				String country = getAttributeValue(sr,"c");
 				String homepage=getAttributeValue(sr,"labeleduri");
@@ -912,11 +858,9 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 				String bCategory=getAttributeValue(sr,"businesscategory");
 				
 				Attribute uniqueMember = sr.getAttributes().get("uniquemember");
-				Vector users = parseOccupants(uniqueMember);
+				Vector<String> users = parseOccupants(uniqueMember);
 				
-				String url = getOrgUrl(orgId, false);
-				
-				org = new Hashtable();
+				org = new Hashtable<String,Object>();
 				org.put(ORG_ID_ATTR, orgId);
 				org.put(ORG_NAME_ATTR, name);
 				org.put(ORG_ADDRESS_ATTR, address);
@@ -928,7 +872,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 				org.put(ORG_PHONE_ATTR, fax);          
 				org.put(ORG_OCCUPANTS_ATTR, users);
 				
-				org.put(ORG_URL_ATTR, url);
 			} //end if searchResults.hasMore()
 			else
 				throw new DirServiceException("No such organisation in directory: " + orgId );
@@ -965,14 +908,9 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 				SearchResult sr = (SearchResult)searchResults.next();
 				
 				Attribute o =  sr.getAttributes().get("o"); 
-				
-				String url = getOrgUrl(orgId, false);
-				
 				org.setOrgId(orgId);
 				if(o != null)
 					org.setName(o.get().toString());
-				if(url != null)
-					org.setUrl(url);
 			} //end if searchResults.hasMore()
 		}
 		catch (NamingException ne) {
@@ -989,33 +927,13 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	
 	/**
 	 * 
-	 * @param org
-	 * @param isPublic
-	 * @return
-	 * @throws DirServiceException
-	 */
-	private String getOrgUrl(String org, boolean isPublic) throws DirServiceException {
-		
-		StringBuffer url = new StringBuffer();
-		if (!isPublic)
-			url.append(circaUrl);
-		else
-			url.append(circaPublicUrl);
-		url.append(circaVirtual).append(circaOrgPref).append(org).append(circaOrgPref2).append(circaSite);
-		
-		return url.toString();
-		
-	}
-	
-	/**
-	 * 
 	 * @param args
 	 */
 	public static void main(String[] args){
 	
 		try{
 			DirectoryService25Impl dirService = new DirectoryService25Impl();
-			Vector orgs = dirService.getRoles("binosil");
+			Vector<String> orgs = dirService.getRoles("binosil");
 			System.out.println(orgs);
 		}
 		catch (Exception e){

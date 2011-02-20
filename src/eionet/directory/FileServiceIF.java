@@ -23,9 +23,6 @@
 
 package eionet.directory;
 
-import java.util.Iterator;
-import java.io.File;
-
 
 /**
  * Methods for file operations.
@@ -102,50 +99,6 @@ public interface FileServiceIF {
  * Referral property of Initial context (maybe not needed...)
  */
   public static final String LDAP_REF          = "ldap.ref";
-
-/**
- * Circa URL prefix for public access
- */
-  public static final String CIRCA_URL_PUBLIC          = "circa.url.public";
-
-/**
- * Circa URL prefix for members
- */
-  public static final String CIRCA_URL_MEMBERS          = "circa.url.members";
-
-/**
- * Circa URL role prefix
- */
-  public static final String CIRCA_ROLE_FN_PREFIX          = "circa.role.function.prefix";
-
-
-/**
- * Circa URL organisation prefixses
- */
-  public static final String CIRCA_ORG_FN_PREFIX          = "circa.org.function.prefix";
-  public static final String CIRCA_ORG_FN_PREFIX2          = "circa.org.function.prefix2";  
-
-  /**
-  * CIRCA site, used at elast when organisations displayed
-  */
-  public static final String CIRCA_SITE          = "circa.site";
-/**
- * Circa URL role suffix
- */
-  public static final String CIRCA_ROLE_FN_SUFFIX          = "circa.role.function.suffix";
-
-
-/**
- * Virtual CIRCA
- */
-  public static final String CIRCA_VCIRCA          = "circa.vcirca";
-
-/**
- * CIRCA Version 
- */
-  public static final String CIRCA_VERSION          = "circa.version";
-  
-
 
 /**
  * Returns String type property from the properties file

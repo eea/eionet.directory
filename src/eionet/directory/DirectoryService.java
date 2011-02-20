@@ -24,197 +24,121 @@
 package eionet.directory;
 
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import eionet.directory.dto.RoleDTO;
 import eionet.directory.modules.DirectoryService25Impl;
-import eionet.directory.modules.FileServiceImpl;
 
 /**
-* Adapter class for the Directoryservice
-* All methods are static in this class
-* @author Kaido Laine
-* @version 1.1
-*/
+ * Adapter class for the Directoryservice
+ * All methods are static in this class
+ * @author Kaido Laine
+ * @version 1.1
+ */
 
 public class DirectoryService {
 
- private static DirectoryServiceIF dir;
- private static FileServiceIF fSrv;
+	private static DirectoryServiceIF dir;
+
+	/**
+	 * Email of the role
+	 */
+	public static String getRoleMail( String roleID ) throws DirServiceException {
+
+		if (dir ==null)
+			dir = getDirService();
+
+		return dir.getRoleMailAddress(roleID);
+
+	}
+
+	/**
+	 * Roles, where the user belongs to
+	 */
+	public static Vector<String> getRoles( String userID ) throws DirServiceException {
+
+		if (dir ==null)
+			dir = getDirService();
+
+		return dir.getRoles( userID ) ;
+
+	}
+
+	/**
+	 *
+	 */
+	public static Hashtable<String,Object> getRole(String roleID ) throws DirServiceException {
+
+		if (dir ==null) 
+			dir = getDirService();
+
+		Hashtable<String,Object> role = dir.getRole(roleID);
+
+		return role;
+
+	}
+
+	/**
+	 *
+	 */
+	public static RoleDTO getRoleDTO(String roleID ) throws DirServiceException {
+
+		if (dir ==null) 
+			dir = getDirService();
+
+		RoleDTO role = dir.getRoleDTO(roleID);
+
+		return role;
+
+	}
+
+	/**
+	 * returns new instance of DirectoryServiceIF, based on CIRCA version
+	 */
+	private static DirectoryServiceIF getDirService () throws DirServiceException {
+		return new DirectoryService25Impl();
+	}
 
 
- /**
- * Email of the role
- */
- public static String getRoleMail( String roleID ) throws DirServiceException {
+	public static void sessionLogin( String user, String pwd ) throws DirServiceException {
+		if (dir ==null)
+			dir = getDirService();
 
-  if (dir ==null)
-    dir = getDirService();
+		dir.sessionLogin( user, pwd );
 
-  return dir.getRoleMailAddress(roleID);
-  
- }
+	}
 
- /**
- * Roles, where the user belongs to
- */
- public static Vector getRoles( String userID ) throws DirServiceException {
+	public static String getFullName( String userID )    throws DirServiceException {
+		if (dir ==null)
+			dir = getDirService();
+		return dir.getFullName(userID);
+	}
 
-  if (dir ==null)
-    dir = getDirService();
+	public static Vector<String> getOccupants( String roleID )    throws DirServiceException {
+		if (dir ==null)
+			dir = getDirService();
+		return dir.getOccupants(roleID);
+	}
 
-  return dir.getRoles( userID ) ;
-  
- }
+	public static Vector<String> listOrganisations() throws DirServiceException {
+		if (dir ==null)
+			dir = getDirService();
+		return dir.listOrganisations();
 
-/**
-*
-*/
-public static Hashtable getRole(String roleID ) throws DirServiceException {
+	}
 
-  if (dir ==null) 
-    dir = getDirService();
-  
-  Hashtable role = dir.getRole(roleID);
+	public static Hashtable<String,String> getPerson(String uId) throws DirServiceException {
+		if (dir ==null)
+			dir = getDirService();
+		return dir.getPerson(uId);
 
-  return role;
-
-}
-
-/**
-*
-*/
-public static RoleDTO getRoleDTO(String roleID ) throws DirServiceException {
-
-  if (dir ==null) 
-    dir = getDirService();
-  
-  RoleDTO role = dir.getRoleDTO(roleID);
-
-  return role;
-
-}
+	}
 
 
- /**
- * URL of the role for dataflow
- */
- public static String getRoleUrl( String roleID ) throws DirServiceException {
-/*
-  if (dir ==null)
-    dir = getDirService();
-
-  String url = dir.getMembesRoleUrl(roleID);
-*/
-  return getMembersRoleUrl(roleID);
-  
-  
- }
-
- /**
- * URL of the role for dataflow
- */
- public static String getMembersRoleUrl( String roleID ) throws DirServiceException {
-
-  if (dir ==null)
-    dir = getDirService();
-
-  String url = dir.getMembersRoleUrl(roleID);
-
-  return url;
-  
-  
- }
-
- /**
- * URL of the role for dataflow
- */
- public static String getPublicRoleUrl( String roleID ) throws DirServiceException {
-
-  if (dir ==null)
-    dir = getDirService();
-
-  String url = dir.getPublicRoleUrl(roleID);
-
-  return url;
-  
-  
- }
-
-
-
-  /**
-  * returns new instance of DirectoryServiceIF, based on CIRCA version
-  */
-  private static DirectoryServiceIF getDirService () throws DirServiceException {
-    //int version  = 
-    if (fSrv == null)
-      fSrv = getFileService();
-      
-    String cVer = fSrv.getStringProperty( fSrv.CIRCA_VERSION );
-    if (cVer.charAt(0) == '2' )
-      return new DirectoryService25Impl();
-    else
-      throw new DirServiceException("Not implemented yet");
- }
-
-  private static FileServiceIF getFileService() throws DirServiceException {
-    return new FileServiceImpl();    
-  }
-
-
-  public static void sessionLogin( String user, String pwd ) throws DirServiceException {
-  if (dir ==null)
-    dir = getDirService();
-
-    dir.sessionLogin( user, pwd );
-    
-  }
-
-     public static String getFullName( String userID )    throws DirServiceException {
-    if (dir ==null)
-      dir = getDirService();
-      return dir.getFullName(userID);
-    }
-
-    public static Vector getOccupants( String roleID )    throws DirServiceException {
-    if (dir ==null)
-      dir = getDirService();
-      return dir.getOccupants(roleID);
-    }
-
-    public static Vector listOrganisations() throws DirServiceException {
-      if (dir ==null)
-        dir = getDirService();
-     return dir.listOrganisations();
-     
-    }
-
-    public static Hashtable getPerson(String uId) throws DirServiceException {
-      if (dir ==null)
-        dir = getDirService();
-     return dir.getPerson(uId);
-     
-    }
-
-
-    public static Hashtable getOrganisation(String orgId) throws DirServiceException {
-      if (dir ==null)
-        dir = getDirService();
-     return dir.getOrganisation(orgId);
-    }
-    
-
-/*public static void main(String args[]) {
-  try {
-      if (dir ==null)
-        dir = getDirService();
-
-
-  } catch (Exception e ) {
-    System.out.println("e= " + e.toString());
-  }
- }  */
+	public static Hashtable<String,Object> getOrganisation(String orgId) throws DirServiceException {
+		if (dir ==null)
+			dir = getDirService();
+		return dir.getOrganisation(orgId);
+	}
 
 }

@@ -5,7 +5,9 @@ package eionet.directory.dto;
  * @author altnyris
  *
  */
-public class OrganisationDTO implements java.io.Serializable{
+public class OrganisationDTO implements java.io.Serializable {
+	
+	private static final long serialVersionUID = -4653894537156120522L;
 	
 	private String orgId;
 	private String name;

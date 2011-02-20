@@ -7,7 +7,9 @@ import java.util.List;
  * @author altnyris
  *
  */
-public class RoleDTO implements java.io.Serializable{
+public class RoleDTO implements java.io.Serializable {
+	
+	private static final long serialVersionUID = -4653894537156120522L;
 	
 	private String id;
 	private String name;
