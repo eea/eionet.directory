@@ -197,7 +197,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 					if (descAttr != null )
 						description = (String)descAttr.get();
 					
-					Attribute mAttr = (Attribute)sr.getAttributes().get(mailAttr);              
+					Attribute mAttr = (Attribute)sr.getAttributes().get(mailAttr);
 					if (mAttr != null)
 						mail = (String)mAttr.get();
 					
@@ -674,10 +674,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 				fullName = fName.get().toString();
 			
 			Attribute o = pAttrs.get("o");      
-			if (o!=null) { //format orgid@site
+			if (o!=null) { //format orgid
 				orgId = o.get().toString() ;
-				if (orgId.indexOf("@") != -1)
-					orgId = orgId.substring(0, orgId.indexOf("@"));
 			}
 			
 			person.put(PERSON_UID_ATTR, uId);
@@ -695,6 +693,9 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	}
 	
 	/**
+	 * @param uId 
+	 * @return MemberDTO
+	 * @throws DirServiceException 
 	 * 
 	 */
 	public MemberDTO getMember (String uId) throws DirServiceException {
@@ -739,20 +740,11 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 					member.setFax((String)fax.get());
 				if(org != null){
 					String orgId = (String)org.get();
-					if (orgId.indexOf("@") != -1){
-						orgId = orgId.substring(0, orgId.indexOf("@"));
-						if(orgId != null && orgId.length()>0){
-							OrganisationDTO organisation = getOrganisationDTO(orgId);
-							member.setOrganisation(organisation);
-						}
-					} else if(orgId.indexOf("@") == -1 && orgId.length()>0){
-						OrganisationDTO organisation = getOrganisationDTO(orgId);
-						if(organisation.getName() == null || organisation.getName().equals(""))
-							organisation.setName(orgId);
-						member.setOrganisation(organisation);
-					}
-				}
-					
+					OrganisationDTO organisation = getOrganisationDTO(orgId);
+					if(organisation.getName() == null || organisation.getName().equals(""))
+						organisation.setName(orgId);
+					member.setOrganisation(organisation);
+				}					
 				
 			} //end if searchResults.hasMore()
 			
@@ -847,15 +839,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 				
 				SearchResult sr = (SearchResult)searchResults.next();
 				
-				String name =  getAttributeValue(sr,"givenname"); 
-				String description = getAttributeValue(sr,"description");
-				//String mail = getAttributeValue(sr,"mail");
-				//String phone = getAttributeValue(sr,"telephonenumber");
-				String fax = getAttributeValue(sr,"fax");
-				String country = getAttributeValue(sr,"c");
+				String name =  getAttributeValue(sr,"o"); 
 				String homepage=getAttributeValue(sr,"labeleduri");
-				String address=getAttributeValue(sr,"street") + "  " + getAttributeValue(sr,"l") + " " + getAttributeValue(sr,"postalcode");
-				String bCategory=getAttributeValue(sr,"businesscategory");
 				
 				Attribute uniqueMember = sr.getAttributes().get("uniquemember");
 				Vector<String> users = parseOccupants(uniqueMember);
@@ -863,13 +848,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 				org = new Hashtable<String,Object>();
 				org.put(ORG_ID_ATTR, orgId);
 				org.put(ORG_NAME_ATTR, name);
-				org.put(ORG_ADDRESS_ATTR, address);
-				org.put(ORG_BCATEGORY_ATTR, bCategory);          
-				org.put(ORG_COUNTRY_ATTR, country);
-				org.put(ORG_DESCRIPTION_ATTR, description);
-				org.put(ORG_FAX_ATTR, fax);
 				org.put(ORG_HOMEPAGE_ATTR, homepage);
-				org.put(ORG_PHONE_ATTR, fax);          
 				org.put(ORG_OCCUPANTS_ATTR, users);
 				
 			} //end if searchResults.hasMore()
@@ -889,6 +868,9 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 	}
 	
 	/**
+	 * @param orgId 
+	 * @return OrganisationDTO
+	 * @throws DirServiceException 
 	 * 
 	 */
 	public OrganisationDTO getOrganisationDTO(String orgId) throws DirServiceException {
@@ -900,17 +882,20 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 				ctx = sessionLogin();
 			
 			searchFilter="(&(objectclass=groupOfUniqueNames)(cn=" + orgId + "))";
-			String[] attrIDs = {"o"};
+			String[] attrIDs = {"o","labeleduri"};
 			
 			NamingEnumeration searchResults = searchSubTree(ctx, "ou=Organisations", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
 			if (searchResults!=null && searchResults.hasMore()) {
 				
 				SearchResult sr = (SearchResult)searchResults.next();
 				
-				Attribute o =  sr.getAttributes().get("o"); 
+				Attribute o =  sr.getAttributes().get("o");
+				Attribute url =  sr.getAttributes().get("labeleduri");
 				org.setOrgId(orgId);
 				if(o != null)
 					org.setName(o.get().toString());
+				if(url != null)
+                    org.setUrl(url.get().toString());
 			} //end if searchResults.hasMore()
 		}
 		catch (NamingException ne) {
