@@ -23,7 +23,6 @@
 
 package eionet.directory;
 
-
 /**
  * Methods for file operations.
  *
@@ -32,88 +31,86 @@ package eionet.directory;
  */
 public interface FileServiceIF {
 
-/**   
- * LDAP server URL
- */
-  public static final String LDAP_URL          = "ldap.url";
+    /**
+     * LDAP server URL
+     */
+    public static final String LDAP_URL = "ldap.url";
 
-/**   
- * LDAP backup server URL
- */
- 
-  public static final String LDAP_BACKUP        ="ldap.backup.url";
-/**
- * LDAP context
- */
-  public static final String LDAP_CTX          = "ldap.context";
+    /**
+     * LDAP backup server URL
+     */
 
-/**
- * Directory, where users are held
- */
-  public static final String LDAP_USER_DIR     = "ldap.user.dir";
+    public static final String LDAP_BACKUP = "ldap.backup.url";
+    /**
+     * LDAP context
+     */
+    public static final String LDAP_CTX = "ldap.context";
 
+    /**
+     * Directory, where users are held
+     */
+    public static final String LDAP_USER_DIR = "ldap.user.dir";
 
-/**
- * Directory, where organisations are held
- */
-  public static final String LDAP_ORGANISATION_DIR     = "ldap.organisation.dir";
+    /**
+     * Directory, where organisations are held
+     */
+    public static final String LDAP_ORGANISATION_DIR = "ldap.organisation.dir";
 
- /**
- * Attribute of the role object name
- */
-  public static final String LDAP_ATTR_ROLENAME= "ldap.attr.rolename";
+    /**
+     * Attribute of the role object name
+     */
+    public static final String LDAP_ATTR_ROLENAME = "ldap.attr.rolename";
 
-  /**
-  * attribute for organisation ID
-  */
-  public static final String LDAP_ATTR_ORGID= "ldap.attr.orgid";
+    /**
+     * attribute for organisation ID
+     */
+    public static final String LDAP_ATTR_ORGID = "ldap.attr.orgid";
 
-  /**
-  * attribute for organisation name
-  */
+    /**
+     * attribute for organisation name
+     */
 
-  public static final String LDAP_ATTR_ORGNAME= "ldap.attr.orgname";
-  /**
-  * attribute for organisation URL
-  */
-  public static final String LDAP_ATTR_ORGURL= "ldap.attr.orgurl";  
-  
- /**
-   * Attribute of the role object description
- */
+    public static final String LDAP_ATTR_ORGNAME = "ldap.attr.orgname";
+    /**
+     * attribute for organisation URL
+     */
+    public static final String LDAP_ATTR_ORGURL = "ldap.attr.orgurl";
 
-  public static final String LDAP_ATTR_ROLEDESC= "ldap.attr.roledescription";
-/**
- * Attribute of the user object, where e-mail address is held
- */
-  public static final String LDAP_ATTR_MAIL    = "ldap.attr.mail";
-/**
- * Attribute, holding the full name of the user 
- */
-  public static final String LDAP_ATTR_FULLNAME  = "ldap.attr.fullname";
-/**
- * User ID attribute in LDAP
- */
-  public static final String LDAP_ATTR_USERID  = "ldap.attr.uid";
-/**
- * Referral property of Initial context (maybe not needed...)
- */
-  public static final String LDAP_REF          = "ldap.ref";
+    /**
+     * Attribute of the role object description
+     */
 
-/**
- * Returns String type property from the properties file
- */
-  public String getStringProperty(String propName) throws DirServiceException;
+    public static final String LDAP_ATTR_ROLEDESC = "ldap.attr.roledescription";
+    /**
+     * Attribute of the user object, where e-mail address is held
+     */
+    public static final String LDAP_ATTR_MAIL = "ldap.attr.mail";
+    /**
+     * Attribute, holding the full name of the user
+     */
+    public static final String LDAP_ATTR_FULLNAME = "ldap.attr.fullname";
+    /**
+     * User ID attribute in LDAP
+     */
+    public static final String LDAP_ATTR_USERID = "ldap.attr.uid";
+    /**
+     * Referral property of Initial context (maybe not needed...)
+     */
+    public static final String LDAP_REF = "ldap.ref";
 
-/**
- * Returns boolean type property from the properties file
- */
-  public boolean getBooleanProperty(String propName) throws DirServiceException;
+    /**
+     * Returns String type property from the properties file
+     */
+    public String getStringProperty(String propName) throws DirServiceException;
 
-/**
- * Returns int type property from the properties file
- */
-  public int getIntProperty(String propName) throws DirServiceException;
+    /**
+     * Returns boolean type property from the properties file
+     */
+    public boolean getBooleanProperty(String propName) throws DirServiceException;
+
+    /**
+     * Returns int type property from the properties file
+     */
+    public int getIntProperty(String propName) throws DirServiceException;
 
 }
-

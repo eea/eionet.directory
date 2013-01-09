@@ -21,7 +21,6 @@
  * Original Code: Rando Valt (TietoEnator)
  */
 
-
 package eionet.directory;
 
 //import com.tee.xmlserver.Logger;
@@ -33,24 +32,21 @@ package eionet.directory;
  * @version 1.1
  */
 public class DirServiceException extends java.lang.Exception {
-	
-	private static final long serialVersionUID = -4653894537156120522L;
 
-	/**
-	 * Creates new <code>ServiceException</code> without detail message.
-	 */
-	public DirServiceException() {
-	}
+    private static final long serialVersionUID = -4653894537156120522L;
 
+    /**
+     * Creates new <code>ServiceException</code> without detail message.
+     */
+    public DirServiceException() {
+    }
 
-	/**
-	 * Constructs an <code>ServiceException</code> with the specified detail message.
-	 * @param msg the detail message.
-	 */
-	public DirServiceException(String msg) {
-		super(msg);
-		//System.err.println("Service exception occured with reason <<" + msg + ">>");
-	}
+    /**
+     * Constructs an <code>ServiceException</code> with the specified detail message.
+     * @param msg the detail message.
+     */
+    public DirServiceException(String msg) {
+        super(msg);
+        // System.err.println("Service exception occured with reason <<" + msg + ">>");
+    }
 }
-
-

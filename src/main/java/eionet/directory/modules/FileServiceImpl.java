@@ -23,12 +23,11 @@
 
 package eionet.directory.modules;
 
-import eionet.directory.FileServiceIF;
-import eionet.directory.DirServiceException;
-
-import java.util.ResourceBundle;
 import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 
+import eionet.directory.DirServiceException;
+import eionet.directory.FileServiceIF;
 
 /**
  * File services implementation.
@@ -38,97 +37,99 @@ import java.util.MissingResourceException;
  */
 public class FileServiceImpl implements FileServiceIF {
 
-	public static final String PROP_FILE = "eionetdir";
+    public static final String PROP_FILE = "eionetdir";
 
-	private ResourceBundle props;
-	private String appRoot;
-	//private LogServiceIF log;
+    private ResourceBundle props;
+    private String appRoot;
 
-	/** Creates new FileServiceImpl */
-	public FileServiceImpl() throws DirServiceException {
-		try {
-			props = ResourceBundle.getBundle(PROP_FILE);
-		} catch (MissingResourceException mre) {
-			throw new DirServiceException("Properties file " + PROP_FILE + ".properties not found");
-		}
-		//log = WFServices.getLogService();
-		// initialize application root property
-		appRoot = "";
-		/*
-     try {
-       appRoot = props.getString(WF_APP_ROOT_DIR);
-     } catch (MissingResourceException mre) {/do nothing, app root was not given/ }
-		 */
+    // private LogServiceIF log;
 
-	}
+    /** Creates new FileServiceImpl */
+    public FileServiceImpl() throws DirServiceException {
+        try {
+            props = ResourceBundle.getBundle(PROP_FILE);
+        } catch (MissingResourceException mre) {
+            throw new DirServiceException("Properties file " + PROP_FILE + ".properties not found");
+        }
+        // log = WFServices.getLogService();
+        // initialize application root property
+        appRoot = "";
+        /*
+         * try {
+         * appRoot = props.getString(WF_APP_ROOT_DIR);
+         * } catch (MissingResourceException mre) {/do nothing, app root was not given/ }
+         */
 
-	/**
-	 *
-	 */
-	public String getStringProperty(String propName) throws DirServiceException {
-		try {
-			return props.getString(propName);
-		} catch (MissingResourceException mre) {
-			throw new DirServiceException("Property value for key " + propName + " not found");
-		}
-	}
+    }
 
-	/**
-	 *
-	 */
-	public boolean getBooleanProperty(String propName) throws DirServiceException {
-		try {
-			String s = props.getString(propName);
-			return Boolean.valueOf(s).booleanValue();
-		} catch (MissingResourceException mre) {
-			throw new DirServiceException("Property value for key " + propName + " not found");
-		}
-	}
+    /**
+     *
+     */
+    @Override
+    public String getStringProperty(String propName) throws DirServiceException {
+        try {
+            return props.getString(propName);
+        } catch (MissingResourceException mre) {
+            throw new DirServiceException("Property value for key " + propName + " not found");
+        }
+    }
 
-	/**
-	 *
-	 */
-	public int getIntProperty(String propName) throws DirServiceException {
-		try {
-			String s = props.getString(propName);
-			return Integer.parseInt(s);
-		} catch (MissingResourceException mre) {
-			throw new DirServiceException("Property value for key " + propName + " not found");
-		} catch (NumberFormatException nfe) {
-			throw new DirServiceException("Invalid value for integer property " + propName);
-		}
-	}
+    /**
+     *
+     */
+    @Override
+    public boolean getBooleanProperty(String propName) throws DirServiceException {
+        try {
+            String s = props.getString(propName);
+            return Boolean.valueOf(s).booleanValue();
+        } catch (MissingResourceException mre) {
+            throw new DirServiceException("Property value for key " + propName + " not found");
+        }
+    }
 
-	/**
-	 *
-	 */
-	public String getAppDirectory(String dirName) throws DirServiceException {
-		try {
-			String dir = props.getString(dirName);
-			String fileSep = System.getProperty("file.separator");
+    /**
+     *
+     */
+    @Override
+    public int getIntProperty(String propName) throws DirServiceException {
+        try {
+            String s = props.getString(propName);
+            return Integer.parseInt(s);
+        } catch (MissingResourceException mre) {
+            throw new DirServiceException("Property value for key " + propName + " not found");
+        } catch (NumberFormatException nfe) {
+            throw new DirServiceException("Invalid value for integer property " + propName);
+        }
+    }
 
-			// find out, if we have relative path - then append it to
-			// the root directory
-			if (dir.length() == 0)
-				dir = appRoot;
-			else  {
-				if ( fileSep.equals("/") )  { // unix
-					if ( !dir.startsWith("/") ) // relative path
-						dir = appRoot + "/" + dir;
-				}
-				else  { // M$
-					if (dir.length() < 2 || dir.charAt(1) != ':' ) // relative path
-						dir = appRoot + "\\" + dir;
-				}
-			}
+    /**
+     *
+     */
+    public String getAppDirectory(String dirName) throws DirServiceException {
+        try {
+            String dir = props.getString(dirName);
+            String fileSep = System.getProperty("file.separator");
 
-			return dir;
-		} catch (MissingResourceException mre) {
-			throw new DirServiceException("Directory for key " + dirName + " not found");
-		}
-	}
+            // find out, if we have relative path - then append it to
+            // the root directory
+            if (dir.length() == 0) {
+                dir = appRoot;
+            } else {
+                if (fileSep.equals("/")) { // unix
+                    if (!dir.startsWith("/")) {
+                        dir = appRoot + "/" + dir;
+                    }
+                } else { // M$
+                    if (dir.length() < 2 || dir.charAt(1) != ':') {
+                        dir = appRoot + "\\" + dir;
+                    }
+                }
+            }
 
+            return dir;
+        } catch (MissingResourceException mre) {
+            throw new DirServiceException("Directory for key " + dirName + " not found");
+        }
+    }
 
 }
-
-

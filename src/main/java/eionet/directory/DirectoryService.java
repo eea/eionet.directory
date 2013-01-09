@@ -38,107 +38,117 @@ import eionet.directory.modules.DirectoryService25Impl;
 
 public class DirectoryService {
 
-	private static DirectoryServiceIF dir;
+    private static DirectoryServiceIF dir;
 
-	/**
-	 * Email of the role
-	 */
-	public static String getRoleMail( String roleID ) throws DirServiceException {
+    /**
+     * Email of the role
+     */
+    public static String getRoleMail( String roleID ) throws DirServiceException {
 
-		if (dir ==null)
-			dir = getDirService();
+        if (dir ==null) {
+            dir = getDirService();
+        }
 
-		return dir.getRoleMailAddress(roleID);
+        return dir.getRoleMailAddress(roleID);
 
-	}
+    }
 
-	/**
-	 * Roles, where the user belongs to
-	 */
-	public static Vector<String> getRoles( String userID ) throws DirServiceException {
+    /**
+     * Roles, where the user belongs to
+     */
+    public static Vector<String> getRoles( String userID ) throws DirServiceException {
 
-		if (dir ==null)
-			dir = getDirService();
+        if (dir ==null) {
+            dir = getDirService();
+        }
 
-		return dir.getRoles( userID ) ;
+        return dir.getRoles( userID ) ;
 
-	}
+    }
 
-	/**
-	 *
-	 */
-	public static Hashtable<String,Object> getRole(String roleID ) throws DirServiceException {
+    /**
+     *
+     */
+    public static Hashtable<String,Object> getRole(String roleID ) throws DirServiceException {
 
-		if (dir ==null) 
-			dir = getDirService();
+        if (dir ==null) {
+            dir = getDirService();
+        }
 
-		Hashtable<String,Object> role = dir.getRole(roleID);
+        Hashtable<String,Object> role = dir.getRole(roleID);
 
-		return role;
+        return role;
 
-	}
+    }
 
-	/**
-	 *
-	 */
-	public static RoleDTO getRoleDTO(String roleID ) throws DirServiceException {
+    /**
+     *
+     */
+    public static RoleDTO getRoleDTO(String roleID ) throws DirServiceException {
 
-		if (dir ==null) 
-			dir = getDirService();
+        if (dir ==null) {
+            dir = getDirService();
+        }
 
-		RoleDTO role = dir.getRoleDTO(roleID);
+        RoleDTO role = dir.getRoleDTO(roleID);
 
-		return role;
+        return role;
 
-	}
+    }
 
-	/**
-	 * returns new instance of DirectoryServiceIF, based on CIRCA version
-	 */
-	private static DirectoryServiceIF getDirService () throws DirServiceException {
-		return new DirectoryService25Impl();
-	}
-
-
-	public static void sessionLogin( String user, String pwd ) throws DirServiceException {
-		if (dir ==null)
-			dir = getDirService();
-
-		dir.sessionLogin( user, pwd );
-
-	}
-
-	public static String getFullName( String userID )    throws DirServiceException {
-		if (dir ==null)
-			dir = getDirService();
-		return dir.getFullName(userID);
-	}
-
-	public static Vector<String> getOccupants( String roleID )    throws DirServiceException {
-		if (dir ==null)
-			dir = getDirService();
-		return dir.getOccupants(roleID);
-	}
-
-	public static Vector<String> listOrganisations() throws DirServiceException {
-		if (dir ==null)
-			dir = getDirService();
-		return dir.listOrganisations();
-
-	}
-
-	public static Hashtable<String,String> getPerson(String uId) throws DirServiceException {
-		if (dir ==null)
-			dir = getDirService();
-		return dir.getPerson(uId);
-
-	}
+    /**
+     * returns new instance of DirectoryServiceIF, based on CIRCA version
+     */
+    private static DirectoryServiceIF getDirService () throws DirServiceException {
+        return new DirectoryService25Impl();
+    }
 
 
-	public static Hashtable<String,Object> getOrganisation(String orgId) throws DirServiceException {
-		if (dir ==null)
-			dir = getDirService();
-		return dir.getOrganisation(orgId);
-	}
+    public static void sessionLogin( String user, String pwd ) throws DirServiceException {
+        if (dir ==null) {
+            dir = getDirService();
+        }
+
+        dir.sessionLogin( user, pwd );
+
+    }
+
+    public static String getFullName( String userID )    throws DirServiceException {
+        if (dir ==null) {
+            dir = getDirService();
+        }
+        return dir.getFullName(userID);
+    }
+
+    public static Vector<String> getOccupants( String roleID )    throws DirServiceException {
+        if (dir ==null) {
+            dir = getDirService();
+        }
+        return dir.getOccupants(roleID);
+    }
+
+    public static Vector<String> listOrganisations() throws DirServiceException {
+        if (dir ==null) {
+            dir = getDirService();
+        }
+        return dir.listOrganisations();
+
+    }
+
+    public static Hashtable<String,String> getPerson(String uId) throws DirServiceException {
+        if (dir ==null) {
+            dir = getDirService();
+        }
+        return dir.getPerson(uId);
+
+    }
+
+
+    public static Hashtable<String,Object> getOrganisation(String orgId) throws DirServiceException {
+        if (dir ==null) {
+            dir = getDirService();
+        }
+        return dir.getOrganisation(orgId);
+    }
 
 }
