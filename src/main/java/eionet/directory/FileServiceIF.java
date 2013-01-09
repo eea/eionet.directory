@@ -79,8 +79,8 @@ public interface FileServiceIF {
     /**
      * Attribute of the role object description
      */
-
     public static final String LDAP_ATTR_ROLEDESC = "ldap.attr.roledescription";
+
     /**
      * Attribute of the user object, where e-mail address is held
      */
@@ -97,6 +97,15 @@ public interface FileServiceIF {
      * Referral property of Initial context (maybe not needed...)
      */
     public static final String LDAP_REF = "ldap.ref";
+    /**
+     * The principal for logging onto LDAP (see javax.naming.Context.SECURITY_PRINCIPAL).
+     * The authentication mechanism will be "simple" (see javax.naming.Context.SECURITY_AUTHENTICATION).
+     */
+    public static final String LDAP_PRINCIPAL = "ldap.principal";
+    /**
+     * The password for the principal identified by ldap.principal. See see javax.naming.Context.SECURITY_CREDENTIALS.
+     */
+    public static final String LDAP_PASSWORD = "ldap.password";
 
     /**
      * Returns String type property from the properties file

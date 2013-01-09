@@ -68,6 +68,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     private String ldapUrl;
     private String ldapCtx;
     private String ldapBackUpUrl;
+    private String ldapPrincipal;
+    private String ldapPassword;
 
     private String ldapRef;
     private String userDir;
@@ -106,14 +108,25 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         orgDir = fsrv.getStringProperty(FileServiceIF.LDAP_ORGANISATION_DIR);
 
         try {
+            ldapPrincipal = fsrv.getStringProperty(FileServiceIF.LDAP_PRINCIPAL);
+        } catch (DirServiceException e) {
+            // connect to LDAP without authentication
+        }
+        try {
+            ldapPassword = fsrv.getStringProperty(FileServiceIF.LDAP_PASSWORD);
+        } catch (DirServiceException e) {
+            // connect to LDAP without authentication
+        }
+
+        try {
             ldapBackUpUrl = fsrv.getStringProperty(FileServiceIF.LDAP_BACKUP);
         } catch (DirServiceException e) {
         }
     }
 
     /**
-     * Creating directory context
-     * Anonymous login to the LDAP server
+     * Creating directory context.
+     * Connecting to LDAP server using anonymous login or login with principals configured in eionet.properties.
      */
     private DirContext sessionLogin() throws DirServiceException {
 
@@ -122,6 +135,14 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         env.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_FACTORY);
         env.put(Context.PROVIDER_URL, ldapCtxUrl);
         env.put(Context.REFERRAL, ldapRef);
+
+        if (ldapPrincipal != null) {
+            env.put(Context.SECURITY_AUTHENTICATION, "simple");
+            env.put(Context.SECURITY_PRINCIPAL, ldapPrincipal);
+            if (ldapPassword != null) {
+                env.put(Context.SECURITY_CREDENTIALS, ldapPassword);
+            }
+        }
 
         DirContext aCtx = null;
         try {
