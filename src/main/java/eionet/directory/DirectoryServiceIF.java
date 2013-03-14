@@ -42,7 +42,7 @@ public interface DirectoryServiceIF {
      */
     // public void close() throws ServiceException;
 
-    /**
+    /* *
      * Returns the roles of the user
      * @param String roleID
      * @return String
