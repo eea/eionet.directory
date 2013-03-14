@@ -5,7 +5,7 @@
 
     <groupId>eionet.directory</groupId>
     <artifactId>eionet-dir</artifactId>
-    <version>2.2-SNAPSHOT</version>
+    <version>2.3</version>
     <packaging>jar</packaging>
 
     <name>eionet-dir</name>

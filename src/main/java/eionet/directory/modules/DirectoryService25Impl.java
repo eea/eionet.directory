@@ -82,12 +82,15 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     private String orgDir;
     private String orgIdAttr;
 
-    private DirContext ctx = null;
-
     private List<Attribute> subroleMembers;
 
+    Hashtable<String, String> env;
+
     /**
-     *
+     * Initializes the DirectoryService implementation class by loading paramters from properties files
+	 * and creating environment properties for DirContext. The initial SirectoryContext uses Connection pooling. 
+	 * More info about LDAP connection pooling: {@link http://docs.oracle.com/javase/tutorial/jndi/ldap/pool.html}
+	 *
      * @throws DirServiceException
      */
     public DirectoryService25Impl() throws DirServiceException {
@@ -122,19 +125,15 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             ldapBackUpUrl = fsrv.getStringProperty(FileServiceIF.LDAP_BACKUP);
         } catch (DirServiceException e) {
         }
-    }
 
-    /**
-     * Creating directory context.
-     * Connecting to LDAP server using anonymous login or login with principals configured in eionet.properties.
-     */
-    private DirContext sessionLogin() throws DirServiceException {
-
-        Hashtable<String, String> env = new Hashtable<String, String>();
+        env = new Hashtable<String, String>();
         String ldapCtxUrl = ldapUrl + ldapCtx;
         env.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_FACTORY);
         env.put(Context.PROVIDER_URL, ldapCtxUrl);
         env.put(Context.REFERRAL, ldapRef);
+
+        // Enable connection pooling
+        env.put("com.sun.jndi.ldap.connect.pool", "true");
 
         if (ldapPrincipal != null) {
             env.put(Context.SECURITY_AUTHENTICATION, "simple");
@@ -143,6 +142,13 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 env.put(Context.SECURITY_CREDENTIALS, ldapPassword);
             }
         }
+    }
+
+    /**
+     * Creating directory context.
+     * Connecting to LDAP server using anonymous login or login with principals configured in eionet.properties.
+     */
+    private DirContext sessionLogin() throws DirServiceException {
 
         DirContext aCtx = null;
         try {
@@ -150,7 +156,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         } catch (CommunicationException ce) {
             // try to connect the backup LDAP
             if (ldapBackUpUrl != null) {
-                ldapCtxUrl = ldapBackUpUrl + ldapCtx;
+                String ldapCtxUrl = ldapBackUpUrl + ldapCtx;
                 env.put(Context.PROVIDER_URL, ldapCtxUrl);
                 try {
                     aCtx = new InitialDirContext(env);
@@ -169,19 +175,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     * Closes allocated directory context.
-     */
-    public void close() {
-        if (ctx != null) {
-            try {
-                ctx.close();
-            } catch (NamingException ne) {
-            }
-            ctx = null;
-        }
-    }
-
-    /**
      * Gets the role for the given ID.
      *
      * @param String roleID
@@ -194,13 +187,12 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         String searchFilter;
         Hashtable<String, Object> role = null;
 
-        if (ctx == null) {
-            ctx = sessionLogin();
-        }
+        DirContext dirCtx = null;
 
         try {
+            dirCtx = sessionLogin();
             searchFilter = "(&(objectclass=groupOfUniqueNames)(" + roleAttr + "=" + roleID + "))";
-            NamingEnumeration searchResults = searchSubTree(ctx, searchFilter);
+            NamingEnumeration searchResults = searchSubTree(dirCtx, searchFilter);
             // KL021031
             if (searchResults != null && searchResults.hasMore()) {
 
@@ -248,6 +240,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                     + ne.toString());
         } catch (Exception e) {
             throw new DirServiceException("Getting role information for role ID= " + roleID + " failed : " + e.toString());
+        } finally {
+            closeDirContext(dirCtx);
         }
 
         return role;
@@ -265,13 +259,12 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         String searchFilter;
         RoleDTO role = new RoleDTO();
 
-        if (ctx == null) {
-            ctx = sessionLogin();
-        }
+        DirContext dirCtx = null;
 
         try {
+            dirCtx = sessionLogin();
             searchFilter = "(&(objectclass=groupOfUniqueNames)(" + roleAttr + "=" + roleID + "))";
-            NamingEnumeration searchResults = searchSubTree(ctx, searchFilter);
+            NamingEnumeration searchResults = searchSubTree(dirCtx, searchFilter);
             // KL021031
             if (searchResults != null && searchResults.hasMore()) {
 
@@ -324,6 +317,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                     + ne.toString());
         } catch (Exception e) {
             throw new DirServiceException("Getting role information for role ID= " + roleID + " failed : " + e.toString());
+        } finally {
+            closeDirContext(dirCtx);
         }
 
         return role;
@@ -339,21 +334,19 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
         String searchFilter;
         List<RoleDTO> roles = new ArrayList<RoleDTO>();
-
-        if (ctx == null) {
-            ctx = sessionLogin();
-        }
+        DirContext dirCtx = null;
 
         subroleMembers = new ArrayList<Attribute>();
 
         try {
+            dirCtx = sessionLogin();
             // Search for objects that have those matching attributes
             searchFilter = "(&(objectclass=groupOfUniqueNames))";
             String[] attrIDs = { "cn", "uniqueMember", "description" };
 
             String query = generateQuery(roleID);
 
-            NamingEnumeration searchResults = searchSubTree(ctx, query, searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
+            NamingEnumeration searchResults = searchSubTree(dirCtx, query, searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
 
             while (searchResults != null && searchResults.hasMore()) {
 
@@ -383,6 +376,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                     + ne.toString());
         } catch (Exception e) {
             throw new DirServiceException("Getting role information for role ID= " + roleID + " failed : " + e.toString());
+        } finally {
+            closeDirContext(dirCtx);
         }
 
         return roles;
@@ -438,7 +433,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
      * @throws DirServiceException
      */
     private NamingEnumeration searchSubTree(DirContext ctx, String name, String filter, String[] attrIDs, int scope)
-    throws DirServiceException {
+            throws DirServiceException {
         NamingEnumeration ne = null;
 
         try {
@@ -482,25 +477,26 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             throw new SecurityException("Authorisation failed: user password cannot be empty");
         }
 
-        Hashtable<String, String> env = new Hashtable<String, String>();
+        Hashtable<String, String> newEnv = new Hashtable<String, String>();
 
         String ldapUser;
         String ldapCtxUrl = ldapUrl + ldapCtx;
-        env.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_FACTORY);
-        env.put(Context.PROVIDER_URL, ldapCtxUrl);
-        env.put(Context.REFERRAL, ldapRef);
+        newEnv.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_FACTORY);
+        newEnv.put(Context.PROVIDER_URL, ldapCtxUrl);
+        newEnv.put(Context.REFERRAL, ldapRef);
         ldapUser = userIdAttr + "=" + userID + "," + userDir + "," + ldapCtx;
-        env.put(Context.SECURITY_PRINCIPAL, ldapUser);
-        env.put(Context.SECURITY_CREDENTIALS, userPwd);
+        newEnv.put(Context.SECURITY_PRINCIPAL, ldapUser);
+        newEnv.put(Context.SECURITY_CREDENTIALS, userPwd);
 
+        DirContext aCtx = null;
         try {
-            ctx = new InitialDirContext(env);
+            aCtx = new InitialDirContext(newEnv);
         } catch (CommunicationException commE) {
             if (ldapBackUpUrl != null) {
                 ldapCtxUrl = ldapBackUpUrl + ldapCtx;
-                env.put(Context.PROVIDER_URL, ldapCtxUrl);
+                newEnv.put(Context.PROVIDER_URL, ldapCtxUrl);
                 try {
-                    ctx = new InitialDirContext(env);
+                    aCtx = new InitialDirContext(newEnv);
                 } catch (AuthenticationException authe) {
                     throw new DirServiceException("Authentication failed: " + authe.toString());
                 } catch (NamingException ne) {
@@ -515,6 +511,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             throw new SecurityException("Authentication failed: " + ne.toString());
         } catch (Exception e) {
             throw new SecurityException("Error creating ldap context: " + e.toString());
+        } finally {
+            closeDirContext(aCtx);
         }
     }
 
@@ -523,9 +521,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
      */
     @Override
     public Vector<String> getOccupants(String roleID) throws DirServiceException {
-        if (ctx == null) {
-            ctx = sessionLogin();
-        }
+
         Hashtable<String, Object> role = getRole(roleID);
         return (Vector<String>) role.get(ROLE_OCCUPANTS_ATTR);
     }
@@ -538,15 +534,14 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     @Override
     public Vector<String> getRoles(String userID) throws DirServiceException {
 
-        if (ctx == null) {
-            ctx = sessionLogin();
-        }
-
         String searchFilter;
         Vector<String> roles = new Vector<String>();
+        DirContext dirCtx = null;
+
         try {
+            dirCtx = sessionLogin();
             searchFilter = "(objectclass=groupOfUniqueNames)";
-            NamingEnumeration searchResults = searchSubTree(ctx, "ou=Roles", searchFilter, null, SearchControls.SUBTREE_SCOPE);
+            NamingEnumeration searchResults = searchSubTree(dirCtx, "ou=Roles", searchFilter, null, SearchControls.SUBTREE_SCOPE);
             while (searchResults != null && searchResults.hasMore()) {
 
                 SearchResult sr = (SearchResult) searchResults.next();
@@ -569,6 +564,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             throw new DirServiceException("Getting roles for user " + userID + " failed : " + nue.toString());
         } catch (Exception e) {
             throw new DirServiceException("Getting roles for user " + userID + " failed : " + e.toString());
+        } finally {
+            closeDirContext(dirCtx);
         }
 
         return roles;
@@ -688,12 +685,13 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     @Override
     public Hashtable<String, String> getPerson(String uId) throws DirServiceException {
 
-        DirContext tmpCtx = (ctx != null) ? ctx : sessionLogin();
         String fullName = uId, orgId = "";
         Hashtable<String, String> person = new Hashtable<String, String>();
+        DirContext dirCtx = null;
 
         try {
-            Attributes pAttrs = tmpCtx.getAttributes("uid=" + uId + ", " + userDir);
+            dirCtx = sessionLogin();
+            Attributes pAttrs = dirCtx.getAttributes("uid=" + uId + ", " + userDir);
             Attribute fName = pAttrs.get(userFullNameAttr);
             if (fName != null) {
                 fullName = fName.get().toString();
@@ -711,6 +709,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             throw new DirServiceException("No such user: " + uId);
         } catch (NamingException ne) {
             throw new DirServiceException("Error getting full name for user: " + uId);
+        } finally {
+            closeDirContext(dirCtx);
         }
 
         return person;
@@ -727,18 +727,17 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         String searchFilter;
         MemberDTO member = new MemberDTO();
 
-        if (ctx == null) {
-            ctx = sessionLogin();
-        }
+        DirContext dirCtx = null;
 
         try {
-
+            dirCtx = sessionLogin();
             // Search for objects that have those matching attributes
 
             searchFilter = "(&(uid=" + uId + "))";
             String[] attrIDs = { "uid", "mail", "cn", "description", "telephoneNumber", "facsimileTelephoneNumber", "o" };
 
-            NamingEnumeration searchResults = searchSubTree(ctx, "ou=Users", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
+            NamingEnumeration searchResults =
+                    searchSubTree(dirCtx, "ou=Users", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
             // KL021031
             while (searchResults != null && searchResults.hasMore()) {
 
@@ -787,6 +786,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         } catch (Exception e) {
             System.out.println("Getting user information for user ID= " + uId + " failed : " + e.toString());
             // throw new DirServiceException("Getting user information for user ID= " + uId + " failed : " + e.toString());
+        } finally {
+            closeDirContext(dirCtx);
         }
 
         return member;
@@ -814,10 +815,12 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     public Vector<String> listOrganisations() throws DirServiceException {
 
         Vector<String> v = new Vector<String>();
-        DirContext tmpCtx = (ctx != null) ? ctx : sessionLogin();
         NamingEnumeration ne = null;
+        DirContext dirCtx = null;
+
         try {
-            ne = tmpCtx.list(orgDir);
+            dirCtx = sessionLogin();
+            ne = dirCtx.list(orgDir);
             if (ne == null) {
                 throw new DirServiceException("No organisations exist in directory specified: " + orgDir);
             }
@@ -830,6 +833,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             }
         } catch (NamingException nex) {
             throw new DirServiceException("Error listing organisations " + nex.toString());
+        } finally {
+            closeDirContext(dirCtx);
         }
 
         return v;
@@ -863,13 +868,13 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
         Hashtable<String, Object> org = null;
         String searchFilter = null;
+        DirContext dirCtx = null;
+
         try {
-            if (ctx == null) {
-                ctx = sessionLogin();
-            }
+            dirCtx = sessionLogin();
 
             searchFilter = "(&(objectclass=groupOfUniqueNames)(cn=" + orgId + "))";
-            NamingEnumeration searchResults = searchSubTree(ctx, searchFilter);
+            NamingEnumeration searchResults = searchSubTree(dirCtx, searchFilter);
             if (searchResults != null && searchResults.hasMore()) {
 
                 SearchResult sr = (SearchResult) searchResults.next();
@@ -896,6 +901,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                     + ne.toString());
         } catch (Exception e) {
             throw new DirServiceException("Failed getting information for organisation ID=" + orgId + ": " + e.toString());
+        } finally {
+            closeDirContext(dirCtx);
         }
 
         return org;
@@ -911,16 +918,16 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
         OrganisationDTO org = new OrganisationDTO();
         String searchFilter = null;
+        DirContext dirCtx = null;
+
         try {
-            if (ctx == null) {
-                ctx = sessionLogin();
-            }
+            dirCtx = sessionLogin();
 
             searchFilter = "(&(objectclass=groupOfUniqueNames)(cn=" + orgId + "))";
             String[] attrIDs = { "o", "labeleduri" };
 
             NamingEnumeration searchResults =
-                searchSubTree(ctx, "ou=Organisations", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
+                    searchSubTree(dirCtx, "ou=Organisations", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
             if (searchResults != null && searchResults.hasMore()) {
 
                 SearchResult sr = (SearchResult) searchResults.next();
@@ -942,9 +949,21 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         } catch (Exception e) {
             System.out.println("Failed getting information for organisation ID=" + orgId + ": " + e.toString());
             // throw new DirServiceException("Failed getting information for organisation ID=" + orgId + ": " + e.toString());
+        } finally {
+            closeDirContext(dirCtx);
         }
 
         return org;
+    }
+
+    private void closeDirContext(DirContext dirCtx) {
+        try {
+            if (dirCtx != null) {
+                dirCtx.close();
+            }
+        } catch (NamingException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
