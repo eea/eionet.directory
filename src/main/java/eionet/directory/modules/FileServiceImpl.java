@@ -44,7 +44,7 @@ public class FileServiceImpl implements FileServiceIF {
 
     // private LogServiceIF log;
 
-    /** Creates new FileServiceImpl */
+    /** Creates new FileServiceImpl. */
     public FileServiceImpl() throws DirServiceException {
         try {
             props = ResourceBundle.getBundle(PROP_FILE);

@@ -88,10 +88,10 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
     /**
      * Initializes the DirectoryService implementation class by loading paramters from properties files
-	 * and creating environment properties for DirContext. The initial SirectoryContext uses Connection pooling. 
-	 * More info about LDAP connection pooling: {@link http://docs.oracle.com/javase/tutorial/jndi/ldap/pool.html}
-	 *
+     * and creating environment properties for DirContext. The initial SirectoryContext uses Connection pooling.
+     *
      * @throws DirServiceException
+     * @see <a href="http://docs.oracle.com/javase/tutorial/jndi/ldap/pool.html">More info about LDAP connection pooling</a>
      */
     public DirectoryService25Impl() throws DirServiceException {
 
@@ -465,7 +465,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     *	Tries to login with given credentials to the LDAP server
+     *  Tries to login with given credentials to the LDAP server
      *  @param String userID, String userPwd
      *
      *  @throws SecurityException if no access, ServiceException
@@ -794,7 +794,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     * Returns Full Name ( forename + surname ) of the user
+     * Returns Full Name ( forename + surname ) of the user.
+     *
      * @param String user: login ID of the user
      * @return String
      */
@@ -843,7 +844,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
     /**
      * Finds an attribute from search results and returns the value, if null, returns
-     * an empty String
+     * an empty String.
      */
     private String getAttributeValue(SearchResult sr, String name) throws DirServiceException {
 
@@ -912,7 +913,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
      * @param orgId
      * @return OrganisationDTO
      * @throws DirServiceException
-     *
      */
     public OrganisationDTO getOrganisationDTO(String orgId) throws DirServiceException {
 

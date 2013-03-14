@@ -43,9 +43,9 @@ public class DirectoryService {
     /**
      * Email of the role
      */
-    public static String getRoleMail( String roleID ) throws DirServiceException {
+    public static String getRoleMail(String roleID) throws DirServiceException {
 
-        if (dir ==null) {
+        if (dir == null) {
             dir = getDirService();
         }
 
@@ -56,26 +56,26 @@ public class DirectoryService {
     /**
      * Roles, where the user belongs to
      */
-    public static Vector<String> getRoles( String userID ) throws DirServiceException {
+    public static Vector<String> getRoles(String userID) throws DirServiceException {
 
-        if (dir ==null) {
+        if (dir == null) {
             dir = getDirService();
         }
 
-        return dir.getRoles( userID ) ;
+        return dir.getRoles(userID) ;
 
     }
 
     /**
      *
      */
-    public static Hashtable<String,Object> getRole(String roleID ) throws DirServiceException {
+    public static Hashtable<String, Object> getRole(String roleID) throws DirServiceException {
 
-        if (dir ==null) {
+        if (dir == null) {
             dir = getDirService();
         }
 
-        Hashtable<String,Object> role = dir.getRole(roleID);
+        Hashtable<String, Object> role = dir.getRole(roleID);
 
         return role;
 
@@ -84,9 +84,9 @@ public class DirectoryService {
     /**
      *
      */
-    public static RoleDTO getRoleDTO(String roleID ) throws DirServiceException {
+    public static RoleDTO getRoleDTO(String roleID) throws DirServiceException {
 
-        if (dir ==null) {
+        if (dir == null) {
             dir = getDirService();
         }
 
@@ -99,44 +99,44 @@ public class DirectoryService {
     /**
      * returns new instance of DirectoryServiceIF, based on CIRCA version
      */
-    private static DirectoryServiceIF getDirService () throws DirServiceException {
+    private static DirectoryServiceIF getDirService() throws DirServiceException {
         return new DirectoryService25Impl();
     }
 
 
-    public static void sessionLogin( String user, String pwd ) throws DirServiceException {
-        if (dir ==null) {
+    public static void sessionLogin(String user, String pwd) throws DirServiceException {
+        if (dir == null) {
             dir = getDirService();
         }
 
-        dir.sessionLogin( user, pwd );
+        dir.sessionLogin(user, pwd);
 
     }
 
-    public static String getFullName( String userID )    throws DirServiceException {
-        if (dir ==null) {
+    public static String getFullName(String userID)    throws DirServiceException {
+        if (dir == null) {
             dir = getDirService();
         }
         return dir.getFullName(userID);
     }
 
-    public static Vector<String> getOccupants( String roleID )    throws DirServiceException {
-        if (dir ==null) {
+    public static Vector<String> getOccupants(String roleID)    throws DirServiceException {
+        if (dir == null) {
             dir = getDirService();
         }
         return dir.getOccupants(roleID);
     }
 
     public static Vector<String> listOrganisations() throws DirServiceException {
-        if (dir ==null) {
+        if (dir == null) {
             dir = getDirService();
         }
         return dir.listOrganisations();
 
     }
 
-    public static Hashtable<String,String> getPerson(String uId) throws DirServiceException {
-        if (dir ==null) {
+    public static Hashtable<String, String> getPerson(String uId) throws DirServiceException {
+        if (dir == null) {
             dir = getDirService();
         }
         return dir.getPerson(uId);
@@ -144,8 +144,8 @@ public class DirectoryService {
     }
 
 
-    public static Hashtable<String,Object> getOrganisation(String orgId) throws DirServiceException {
-        if (dir ==null) {
+    public static Hashtable<String, Object> getOrganisation(String orgId) throws DirServiceException {
+        if (dir == null) {
             dir = getDirService();
         }
         return dir.getOrganisation(orgId);
