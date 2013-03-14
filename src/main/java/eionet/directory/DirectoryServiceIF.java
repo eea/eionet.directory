@@ -36,15 +36,15 @@ import eionet.directory.dto.RoleDTO;
  */
 public interface DirectoryServiceIF {
 
-    /**
+    /*
      * Closes the opened context object
      * @exception ServiceException
      */
     // public void close() throws ServiceException;
 
-    /* *
+    /*
      * Returns the roles of the user
-     * @param String roleID
+     * @param roleID
      * @return String
      * @deprecated
      */
@@ -103,7 +103,8 @@ public interface DirectoryServiceIF {
 
     /**
      * Login to the LDAP server with credentials
-     * @param String userID, String userPwd
+     * @param userID
+     * @param userPwd
      * @exception ServiceException
      * @exception SecurityException, if login is not allowed
      */
@@ -111,7 +112,7 @@ public interface DirectoryServiceIF {
 
     /**
      * Returns the roles of the user
-     * @param String userID
+     * @param userID
      * @return Vector, contains role names
      *
      */
@@ -119,7 +120,7 @@ public interface DirectoryServiceIF {
 
     /**
      * Returns the occupants of the role
-     * @param String roleID
+     * @param roleID
      * @return Vector, contains user (login) names
      *
      */
@@ -127,7 +128,7 @@ public interface DirectoryServiceIF {
 
     /**
      * Returns the full name of the user
-     * @param String userID
+     * @param userID
      * @return String
      *
      */

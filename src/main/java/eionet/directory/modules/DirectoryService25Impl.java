@@ -177,7 +177,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     /**
      * Gets the role for the given ID.
      *
-     * @param String roleID
+     * @param roleID
      * @return Role
      */
     @Override
@@ -250,7 +250,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     /**
      * Gets the role for the given ID.
      *
-     * @param String roleID
+     * @param roleID
      * @return RoleDTO
      */
     @Override
@@ -327,7 +327,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     /**
      * Gets subroles of given role.
      *
-     * @param String roleID
+     * @param roleID
      * @return Subroles
      */
     private List<RoleDTO> getSubroles(String roleID) throws DirServiceException {
@@ -455,7 +455,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
     /**
      * Returns mail addresses of the role
-     * @param String role: ID of the role
+     * @param role: ID of the role
      * @return String
      */
     @Override
@@ -465,9 +465,10 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     *  Tries to login with given credentials to the LDAP server
-     *  @param String userID, String userPwd
+     *  Tries to login with given credentials to the LDAP server.
      *
+     *  @param userID
+     *  @param userPwd
      *  @throws SecurityException if no access, ServiceException
      */
     @Override
@@ -529,7 +530,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     /**
      * Gets the roles for the given user.
      *
-     * @param String userID
+     * @param userID
      */
     @Override
     public Vector<String> getRoles(String userID) throws DirServiceException {
@@ -679,9 +680,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         return userNames;
     }
 
-    /**
-     *
-     */
     @Override
     public Hashtable<String, String> getPerson(String uId) throws DirServiceException {
 
@@ -796,7 +794,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     /**
      * Returns Full Name ( forename + surname ) of the user.
      *
-     * @param String user: login ID of the user
+     * @param user: login ID of the user
      * @return String
      */
     @Override
