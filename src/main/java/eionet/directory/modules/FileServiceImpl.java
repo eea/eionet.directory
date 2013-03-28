@@ -37,33 +37,26 @@ import eionet.directory.FileServiceIF;
  */
 public class FileServiceImpl implements FileServiceIF {
 
+    /** Properties file prefix. */
     public static final String PROP_FILE = "eionetdir";
 
+    /** Properties resource. */
     private ResourceBundle props;
-    private String appRoot;
 
-    // private LogServiceIF log;
-
-    /** Creates new FileServiceImpl. */
+    /**
+     * Creates new FileServiceImpl.
+     * @throws DirServiceException if eionetdir.properties file is not found.
+     */
     public FileServiceImpl() throws DirServiceException {
         try {
             props = ResourceBundle.getBundle(PROP_FILE);
         } catch (MissingResourceException mre) {
             throw new DirServiceException("Properties file " + PROP_FILE + ".properties not found");
         }
-        // log = WFServices.getLogService();
-        // initialize application root property
-        appRoot = "";
-        /*
-         * try {
-         * appRoot = props.getString(WF_APP_ROOT_DIR);
-         * } catch (MissingResourceException mre) {/do nothing, app root was not given/ }
-         */
-
     }
 
     /**
-     *
+     * {@inheritDoc}
      */
     @Override
     public String getStringProperty(String propName) throws DirServiceException {
@@ -75,8 +68,20 @@ public class FileServiceImpl implements FileServiceIF {
     }
 
     /**
-     *
+     * {@inheritDoc}
      */
+   @Override
+   public String getOptionalStringProperty(String propName){
+       try {
+           return props.getString(propName);
+       } catch (MissingResourceException mre) {
+           return "";
+       }
+   }
+
+   /**
+    * {@inheritDoc}
+    */
     @Override
     public boolean getBooleanProperty(String propName) throws DirServiceException {
         try {
@@ -88,7 +93,7 @@ public class FileServiceImpl implements FileServiceIF {
     }
 
     /**
-     *
+     * {@inheritDoc}
      */
     @Override
     public int getIntProperty(String propName) throws DirServiceException {
@@ -101,35 +106,4 @@ public class FileServiceImpl implements FileServiceIF {
             throw new DirServiceException("Invalid value for integer property " + propName);
         }
     }
-
-    /**
-     *
-     */
-    public String getAppDirectory(String dirName) throws DirServiceException {
-        try {
-            String dir = props.getString(dirName);
-            String fileSep = System.getProperty("file.separator");
-
-            // find out, if we have relative path - then append it to
-            // the root directory
-            if (dir.length() == 0) {
-                dir = appRoot;
-            } else {
-                if (fileSep.equals("/")) { // unix
-                    if (!dir.startsWith("/")) {
-                        dir = appRoot + "/" + dir;
-                    }
-                } else { // M$
-                    if (dir.length() < 2 || dir.charAt(1) != ':') {
-                        dir = appRoot + "\\" + dir;
-                    }
-                }
-            }
-
-            return dir;
-        } catch (MissingResourceException mre) {
-            throw new DirServiceException("Directory for key " + dirName + " not found");
-        }
-    }
-
 }

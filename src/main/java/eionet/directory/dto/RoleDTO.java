@@ -9,14 +9,22 @@ import java.util.List;
  */
 public class RoleDTO implements java.io.Serializable {
 
+    /** serialVersionUID. */
     private static final long serialVersionUID = -4653894537156120522L;
 
+    /** Role ID. */
     private String id;
+    /** Role Name. */
     private String name;
+    /** Role e-mail address. */
     private String mail;
+    /** Role description. */
     private String description;
+    /** Role Site Url. */
     private String membersUrl;
+    /** Role memebers. */
     private List<MemberDTO> members;
+    /** Role subroles. */
     private List<RoleDTO> subroles;
 
     /**

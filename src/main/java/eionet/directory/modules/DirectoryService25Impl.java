@@ -53,10 +53,10 @@ import eionet.directory.dto.OrganisationDTO;
 import eionet.directory.dto.RoleDTO;
 
 /**
- * Provides functionality related to LDAP directory server as login,
- * getting roles and getting e-mail addresses for users of a certain role.
+ * Provides functionality related to LDAP directory server as login, getting roles and getting e-mail addresses for users of a
+ * certain role.
  *
- * @author  Kaido Laine
+ * @author Kaido Laine
  * @version 1.0
  */
 public class DirectoryService25Impl implements DirectoryServiceIF {
@@ -78,6 +78,10 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     private String userIdAttr;
     private String userFullNameAttr; // KL 020114
     private String mailAttr;
+    /**
+     * Url of the role site in Eionet Dir.
+     */
+    private String roleSiteUrl;
 
     private String orgDir;
     private String orgIdAttr;
@@ -87,11 +91,11 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     Hashtable<String, String> env;
 
     /**
-     * Initializes the DirectoryService implementation class by loading paramters from properties files
-     * and creating environment properties for DirContext. The initial SirectoryContext uses Connection pooling.
+     * Initializes the DirectoryService implementation class by loading paramters from properties files and creating environment
+     * properties for DirContext. The initial SirectoryContext uses Connection pooling.
      *
-     * @throws DirServiceException
      * @see <a href="http://docs.oracle.com/javase/tutorial/jndi/ldap/pool.html">More info about LDAP connection pooling</a>
+     * @throws DirServiceException
      */
     public DirectoryService25Impl() throws DirServiceException {
 
@@ -110,21 +114,10 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         orgIdAttr = fsrv.getStringProperty(FileServiceIF.LDAP_ATTR_ORGID);
         orgDir = fsrv.getStringProperty(FileServiceIF.LDAP_ORGANISATION_DIR);
 
-        try {
-            ldapPrincipal = fsrv.getStringProperty(FileServiceIF.LDAP_PRINCIPAL);
-        } catch (DirServiceException e) {
-            // connect to LDAP without authentication
-        }
-        try {
-            ldapPassword = fsrv.getStringProperty(FileServiceIF.LDAP_PASSWORD);
-        } catch (DirServiceException e) {
-            // connect to LDAP without authentication
-        }
-
-        try {
-            ldapBackUpUrl = fsrv.getStringProperty(FileServiceIF.LDAP_BACKUP);
-        } catch (DirServiceException e) {
-        }
+        ldapPrincipal = fsrv.getOptionalStringProperty(FileServiceIF.LDAP_PRINCIPAL);
+        ldapPassword = fsrv.getOptionalStringProperty(FileServiceIF.LDAP_PASSWORD);
+        ldapBackUpUrl = fsrv.getOptionalStringProperty(FileServiceIF.LDAP_BACKUP);
+        roleSiteUrl = fsrv.getOptionalStringProperty(FileServiceIF.LDAP_ROLE_SITE_URL);
 
         env = new Hashtable<String, String>();
         String ldapCtxUrl = ldapUrl + ldapCtx;
@@ -145,8 +138,9 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     * Creating directory context.
-     * Connecting to LDAP server using anonymous login or login with principals configured in eionet.properties.
+     * Creating directory context. Connecting to LDAP server using anonymous login or login with principals configured in
+     * eionet.properties.
+     * @throws DirServiceException
      */
     private DirContext sessionLogin() throws DirServiceException {
 
@@ -229,7 +223,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 role.put(ROLE_MAIL_ATTR, mail);
                 role.put(ROLE_DESCRIPTION_ATTR, description);
                 role.put(ROLE_OCCUPANTS_ATTR, occupants);
-            } // end if searchResults.hasMore()
+            }
+            // end if searchResults.hasMore()
             else {
                 throw new DirServiceException("No role in directory " + roleID);
             }
@@ -306,6 +301,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 if (subroles != null) {
                     role.setSubroles(subroles);
                 }
+                role.setMembersUrl(getRoleUrl(roleID));
             } // end if searchResults.hasMore()
             else {
                 throw new DirServiceException("No role in directory " + roleID);
@@ -342,7 +338,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             dirCtx = sessionLogin();
             // Search for objects that have those matching attributes
             searchFilter = "(&(objectclass=groupOfUniqueNames))";
-            String[] attrIDs = { "cn", "uniqueMember", "description" };
+            String[] attrIDs = {"cn", "uniqueMember", "description"};
 
             String query = generateQuery(roleID);
 
@@ -362,10 +358,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                     subroleMembers.add(um);
                 }
                 /*
-                 * List<MemberDTO> members = parseMembers(um);
-                 * if(members != null && members.size()>0){
-                 * dto.setMembers(members);
-                 * }
+                 * List<MemberDTO> members = parseMembers(um); if(members != null && members.size()>0){ dto.setMembers(members); }
                  */
                 roles.add(dto);
             }
@@ -455,7 +448,9 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
     /**
      * Returns mail addresses of the role
-     * @param role: ID of the role
+     *
+     * @param role
+     *            : ID of the role
      * @return String
      */
     @Override
@@ -465,11 +460,12 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     *  Tries to login with given credentials to the LDAP server.
+     * Tries to login with given credentials to the LDAP server.
      *
-     *  @param userID
-     *  @param userPwd
-     *  @throws SecurityException if no access, ServiceException
+     * @param userID
+     * @param userPwd
+     * @throws SecurityException
+     *             if no access, ServiceException
      */
     @Override
     public void sessionLogin(String userID, String userPwd) throws DirServiceException, SecurityException {
@@ -623,11 +619,9 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                     } else {
                         s = s.substring(pos1 + pattern1.length(), pos2).trim();
                     }
-                    if (s.length() > 0) {
-                        if (!subMembers.contains(s)) {
-                            MemberDTO member = getMember(s);
-                            members.add(member);
-                        }
+                    if (s.length() > 0 && !subMembers.contains(s)) {
+                        MemberDTO member = getMember(s);
+                        members.add(member);
                     }
                 }
             }
@@ -732,7 +726,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             // Search for objects that have those matching attributes
 
             searchFilter = "(&(uid=" + uId + "))";
-            String[] attrIDs = { "uid", "mail", "cn", "description", "telephoneNumber", "facsimileTelephoneNumber", "o" };
+            String[] attrIDs = {"uid", "mail", "cn", "description", "telephoneNumber", "facsimileTelephoneNumber", "o"};
 
             NamingEnumeration searchResults =
                     searchSubTree(dirCtx, "ou=Users", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
@@ -794,7 +788,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     /**
      * Returns Full Name ( forename + surname ) of the user.
      *
-     * @param user: login ID of the user
+     * @param user
+     *            : login ID of the user
      * @return String
      */
     @Override
@@ -841,8 +836,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     * Finds an attribute from search results and returns the value, if null, returns
-     * an empty String.
+     * Finds an attribute from search results and returns the value, if null, returns an empty String.
      */
     private String getAttributeValue(SearchResult sr, String name) throws DirServiceException {
 
@@ -922,7 +916,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             dirCtx = sessionLogin();
 
             searchFilter = "(&(objectclass=groupOfUniqueNames)(cn=" + orgId + "))";
-            String[] attrIDs = { "o", "labeleduri" };
+            String[] attrIDs = {"o", "labeleduri"};
 
             NamingEnumeration searchResults =
                     searchSubTree(dirCtx, "ou=Organisations", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
@@ -954,6 +948,10 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         return org;
     }
 
+    /**
+     * Closes Directory context and connection underneath.
+     * @param dirCtx Directory Context
+     */
     private void closeDirContext(DirContext dirCtx) {
         try {
             if (dirCtx != null) {
@@ -965,17 +963,15 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
+     * Returns Url of the role site in Eionet Directory.
      *
-     * @param args
+     * @param role ID of the role
+     * @return String URL of the role site.
+     * @throws DirServiceException
      */
-    public static void main(String[] args) {
+    private String getRoleUrl(String role){
 
-        try {
-            DirectoryService25Impl dirService = new DirectoryService25Impl();
-            Vector<String> orgs = dirService.getRoles("binosil");
-            System.out.println(orgs);
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-        }
+        String url = String.format(roleSiteUrl, role);
+        return url;
     }
 }

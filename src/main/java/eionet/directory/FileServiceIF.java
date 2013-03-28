@@ -108,6 +108,11 @@ public interface FileServiceIF {
     public static final String LDAP_PASSWORD = "ldap.password";
 
     /**
+     * The URL of the Role site in Eionet Directory.
+     */
+    public static final String LDAP_ROLE_SITE_URL = "ldap.role.site.url";
+
+    /**
      * Returns String type property from the properties file
      */
     public String getStringProperty(String propName) throws DirServiceException;
@@ -121,5 +126,12 @@ public interface FileServiceIF {
      * Returns int type property from the properties file
      */
     public int getIntProperty(String propName) throws DirServiceException;
+
+    /**
+     * Returns String type property from the properties file if exists. Otherwise empty String is returned.
+     * @param propName Property name
+     * @return String property value.
+     */
+    public String getOptionalStringProperty(String propName);
 
 }
