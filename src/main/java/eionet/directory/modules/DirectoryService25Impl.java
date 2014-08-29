@@ -23,34 +23,16 @@
 
 package eionet.directory.modules;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
-import java.util.Vector;
-
-import javax.naming.AuthenticationException;
-import javax.naming.CommunicationException;
-import javax.naming.Context;
-import javax.naming.NameClassPair;
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.InitialDirContext;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-
 import eionet.directory.DirServiceException;
 import eionet.directory.DirectoryServiceIF;
 import eionet.directory.FileServiceIF;
 import eionet.directory.dto.MemberDTO;
 import eionet.directory.dto.OrganisationDTO;
 import eionet.directory.dto.RoleDTO;
+
+import javax.naming.*;
+import javax.naming.directory.*;
+import java.util.*;
 
 /**
  * Provides functionality related to LDAP directory server as login, getting roles and getting e-mail addresses for users of a
@@ -94,8 +76,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
      * Initializes the DirectoryService implementation class by loading paramters from properties files and creating environment
      * properties for DirContext. The initial SirectoryContext uses Connection pooling.
      *
-     * @see <a href="http://docs.oracle.com/javase/tutorial/jndi/ldap/pool.html">More info about LDAP connection pooling</a>
      * @throws DirServiceException
+     * @see <a href="http://docs.oracle.com/javase/tutorial/jndi/ldap/pool.html">More info about LDAP connection pooling</a>
      */
     public DirectoryService25Impl() throws DirServiceException {
 
@@ -140,6 +122,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     /**
      * Creating directory context. Connecting to LDAP server using anonymous login or login with principals configured in
      * eionet.properties.
+     *
      * @throws DirServiceException
      */
     private DirContext sessionLogin() throws DirServiceException {
@@ -169,14 +152,14 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     * Gets the role for the given ID.
+     * Gets the role properties for the given ID.
      *
-     * @param roleID
+     * @param roleId LDAP role unique identifier
      * @return Role
      */
     @Override
     @SuppressWarnings("deprecation")
-    public Hashtable<String, Object> getRole(String roleID) throws DirServiceException {
+    public Hashtable<String, Object> getRole(String roleId) throws DirServiceException {
 
         String searchFilter;
         Hashtable<String, Object> role = null;
@@ -185,7 +168,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
         try {
             dirCtx = sessionLogin();
-            searchFilter = "(&(objectclass=groupOfUniqueNames)(" + roleAttr + "=" + roleID + "))";
+            searchFilter = "(&(objectclass=groupOfUniqueNames)(" + roleAttr + "=" + roleId + "))";
             NamingEnumeration searchResults = searchSubTree(dirCtx, searchFilter);
             // KL021031
             if (searchResults != null && searchResults.hasMore()) {
@@ -212,13 +195,13 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 try {
                     uniqueMember = sr.getAttributes().get("uniqueMember");
                 } catch (Exception e) {
-                    throw new DirServiceException("Error getting occupants for role : " + roleID + "\n" + e.toString());
+                    throw new DirServiceException("Error getting occupants for role : " + roleId + "\n" + e.toString());
                 }
 
-                Vector<String> occupants = parseOccupants(uniqueMember);
+                Vector<String> occupants = DirectoryServiceUtils.parseOccupants(uniqueMember);
 
                 role = new Hashtable<String, Object>();
-                role.put(ROLE_ID_ATTR, roleID);
+                role.put(ROLE_ID_ATTR, roleId);
                 role.put(ROLE_NAME_ATTR, roleName);
                 role.put(ROLE_MAIL_ATTR, mail);
                 role.put(ROLE_DESCRIPTION_ATTR, description);
@@ -226,15 +209,15 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             }
             // end if searchResults.hasMore()
             else {
-                throw new DirServiceException("No role in directory " + roleID);
+                throw new DirServiceException("No role in directory " + roleId);
             }
 
         } catch (NoSuchElementException nose) {
         } catch (NamingException ne) {
-            throw new DirServiceException("NamingException, if getting role information for role ID= " + roleID + ": "
+            throw new DirServiceException("NamingException, if getting role information for role ID= " + roleId + ": "
                     + ne.toString());
         } catch (Exception e) {
-            throw new DirServiceException("Getting role information for role ID= " + roleID + " failed : " + e.toString());
+            throw new DirServiceException("Getting role information for role ID= " + roleId + " failed : " + e.toString());
         } finally {
             closeDirContext(dirCtx);
         }
@@ -245,11 +228,11 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     /**
      * Gets the role for the given ID.
      *
-     * @param roleID
+     * @param roleId LDAP role unique identifier.
      * @return RoleDTO
      */
     @Override
-    public RoleDTO getRoleDTO(String roleID) throws DirServiceException {
+    public RoleDTO getRoleDTO(String roleId) throws DirServiceException {
 
         String searchFilter;
         RoleDTO role = new RoleDTO();
@@ -258,7 +241,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
         try {
             dirCtx = sessionLogin();
-            searchFilter = "(&(objectclass=groupOfUniqueNames)(" + roleAttr + "=" + roleID + "))";
+            searchFilter = "(&(objectclass=groupOfUniqueNames)(" + roleAttr + "=" + roleId + "))";
             NamingEnumeration searchResults = searchSubTree(dirCtx, searchFilter);
             // KL021031
             if (searchResults != null && searchResults.hasMore()) {
@@ -285,13 +268,13 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 try {
                     uniqueMember = sr.getAttributes().get("uniqueMember");
                 } catch (Exception e) {
-                    throw new DirServiceException("Error getting occupants for role : " + roleID + "\n" + e.toString());
+                    throw new DirServiceException("Error getting occupants for role : " + roleId + "\n" + e.toString());
                 }
 
-                List<RoleDTO> subroles = getSubroles(roleID);
+                List<RoleDTO> subroles = getSubroles(roleId);
                 List<MemberDTO> members = parseMembers(uniqueMember);
 
-                role.setId(roleID);
+                role.setId(roleId);
                 role.setName(roleName);
                 role.setMail(mail);
                 role.setDescription(description);
@@ -301,18 +284,18 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 if (subroles != null) {
                     role.setSubroles(subroles);
                 }
-                role.setMembersUrl(getRoleUrl(roleID));
+                role.setMembersUrl(getRoleUrl(roleId));
             } // end if searchResults.hasMore()
             else {
-                throw new DirServiceException("No role in directory " + roleID);
+                throw new DirServiceException("No role in directory " + roleId);
             }
 
         } catch (NoSuchElementException nose) {
         } catch (NamingException ne) {
-            throw new DirServiceException("NamingException, if getting role information for role ID= " + roleID + ": "
+            throw new DirServiceException("NamingException, if getting role information for role ID= " + roleId + ": "
                     + ne.toString());
         } catch (Exception e) {
-            throw new DirServiceException("Getting role information for role ID= " + roleID + " failed : " + e.toString());
+            throw new DirServiceException("Getting role information for role ID= " + roleId + " failed : " + e.toString());
         } finally {
             closeDirContext(dirCtx);
         }
@@ -392,7 +375,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     *
      * @param ctx
      * @param searchFilter
      * @return
@@ -404,7 +386,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     *
      * @param ctx
      * @param filter
      * @param attrIDs
@@ -417,7 +398,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     *
      * @param ctx
      * @param name
      * @param filter
@@ -449,8 +429,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     /**
      * Returns mail addresses of the role
      *
-     * @param role
-     *            : ID of the role
+     * @param roleID : ID of the role
      * @return String
      */
     @Override
@@ -464,8 +443,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
      *
      * @param userID
      * @param userPwd
-     * @throws SecurityException
-     *             if no access, ServiceException
+     * @throws SecurityException if no access, ServiceException
      */
     @Override
     public void sessionLogin(String userID, String userPwd) throws DirServiceException, SecurityException {
@@ -526,10 +504,11 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     /**
      * Gets the roles for the given user.
      *
-     * @param userID
+     * @param useriId User unique id in LDAP (uid).
+     * @return List of user roles.
      */
     @Override
-    public Vector<String> getRoles(String userID) throws DirServiceException {
+    public Vector<String> getRoles(String useriId) throws DirServiceException {
 
         String searchFilter;
         Vector<String> roles = new Vector<String>();
@@ -544,23 +523,20 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 SearchResult sr = (SearchResult) searchResults.next();
                 String roleName = (String) sr.getAttributes().get(roleAttr).get();
                 Attribute uniqueMember = sr.getAttributes().get("uniqueMember");
-                if (uniqueMember != null) {
-                    Vector<String> v = parseOccupants(uniqueMember);
-                    if (v != null && v.contains(userID)) {
-                        roles.add(roleName);
-                    }
+                if (DirectoryServiceUtils.occupantsContainsUserId(uniqueMember, useriId)) {
+                    roles.add(roleName);
                 }
             }
 
             if (roles.size() == 0) {
-                throw new DirServiceException("No roles specified for user " + userID);
+                throw new DirServiceException("No roles specified for user " + useriId);
             }
         } catch (NamingException ne) {
-            throw new DirServiceException("Getting roles for user " + userID + " failed : " + ne.toString());
+            throw new DirServiceException("Getting roles for user " + useriId + " failed : " + ne.toString());
         } catch (NullPointerException nue) {
-            throw new DirServiceException("Getting roles for user " + userID + " failed : " + nue.toString());
+            throw new DirServiceException("Getting roles for user " + useriId + " failed : " + nue.toString());
         } catch (Exception e) {
-            throw new DirServiceException("Getting roles for user " + userID + " failed : " + e.toString());
+            throw new DirServiceException("Getting roles for user " + useriId + " failed : " + e.toString());
         } finally {
             closeDirContext(dirCtx);
         }
@@ -569,7 +545,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     *
      * @param um
      * @return
      * @throws DirServiceException
@@ -587,7 +562,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             List<String> subMembers = new ArrayList<String>();
 
             if (subroleMembers != null) {
-                for (Iterator<Attribute> it = subroleMembers.iterator(); it.hasNext();) {
+                for (Iterator<Attribute> it = subroleMembers.iterator(); it.hasNext(); ) {
                     Attribute at = it.next();
                     NamingEnumeration nu = at.getAll();
                     while (nu.hasMore()) {
@@ -634,46 +609,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         return members;
     }
 
-    /**
-     *
-     * @param um
-     * @return
-     * @throws DirServiceException
-     */
-    private Vector<String> parseOccupants(Attribute um) throws DirServiceException {
-
-        Vector<String> userNames = new Vector<String>();
-        if (um == null) {
-            return userNames;
-        }
-
-        try {
-            String pattern1 = "uid=";
-            NamingEnumeration nu = um.getAll();
-            while (nu.hasMore()) {
-                String s = (String) (nu.next());
-                int pos1 = s.indexOf(pattern1);
-                if (pos1 >= 0) {
-                    int pos2 = s.indexOf(",", pos1 + pattern1.length());
-                    if (pos2 < 0) {
-                        s = s.substring(pos1 + pattern1.length()).trim();
-                    } else {
-                        s = s.substring(pos1 + pattern1.length(), pos2).trim();
-                    }
-                    if (s.length() > 0) {
-                        userNames.add(s);
-                    }
-                }
-            }
-        } catch (NamingException ne) {
-            throw new DirServiceException("Error getting user info" + ne.toString());
-        } catch (NullPointerException nu) {
-            throw new DirServiceException("Error getting user info" + nu.toString());
-        }
-
-        return userNames;
-    }
-
     @Override
     public Hashtable<String, String> getPerson(String uId) throws DirServiceException {
 
@@ -712,7 +647,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
      * @param uId
      * @return MemberDTO
      * @throws DirServiceException
-     *
      */
     public MemberDTO getMember(String uId) throws DirServiceException {
 
@@ -788,8 +722,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     /**
      * Returns Full Name ( forename + surname ) of the user.
      *
-     * @param user
-     *            : login ID of the user
+     * @param user : login ID of the user
      * @return String
      */
     @Override
@@ -876,7 +809,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 String homepage = getAttributeValue(sr, "labeleduri");
 
                 Attribute uniqueMember = sr.getAttributes().get("uniquemember");
-                Vector<String> users = parseOccupants(uniqueMember);
+                Vector<String> users = DirectoryServiceUtils.parseOccupants(uniqueMember);
 
                 org = new Hashtable<String, Object>();
                 org.put(ORG_ID_ATTR, orgId);
@@ -950,6 +883,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
     /**
      * Closes Directory context and connection underneath.
+     *
      * @param dirCtx Directory Context
      */
     private void closeDirContext(DirContext dirCtx) {
@@ -967,9 +901,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
      *
      * @param role ID of the role
      * @return String URL of the role site.
-     * @throws DirServiceException
      */
-    private String getRoleUrl(String role){
+    private String getRoleUrl(String role) {
 
         String url = String.format(roleSiteUrl, role);
         return url;
