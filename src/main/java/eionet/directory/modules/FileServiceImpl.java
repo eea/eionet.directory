@@ -15,16 +15,26 @@
  * The Original Code code was developed for the European
  * Environment Agency (EEA) under the IDA/EINRC framework contract.
  *
- * Copyright (c) 2000-2002 by European Environment Agency.  All
+ * Copyright (c) 2000-2015 by European Environment Agency.  All
  * Rights Reserved.
  *
  * Original Code: Rando Valt (TietoEnator)
+ * Contributor: Søren Roug
  */
 
 package eionet.directory.modules;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.MissingResourceException;
-import java.util.ResourceBundle;
+import java.util.Properties;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.Binding;
+import javax.naming.NamingException;
 
 import eionet.directory.DirServiceException;
 import eionet.directory.FileServiceIF;
@@ -37,67 +47,116 @@ import eionet.directory.FileServiceIF;
  */
 public class FileServiceImpl implements FileServiceIF {
 
+    /** Tomcat puts its stuff under java:comp/env. */
+    private static final String TOMCAT_CONTEXT = "java:comp/env/";
+
     /** Properties file prefix. */
     public static final String PROP_FILE = "eionetdir";
 
     /** Properties resource. */
-    private ResourceBundle props;
+    private Hashtable props;
 
     /**
      * Creates new FileServiceImpl.
-     * @throws DirServiceException if eionetdir.properties file is not found.
+     * @throws DirServiceException if properties are not found.
      */
     public FileServiceImpl() throws DirServiceException {
-        try {
-            props = ResourceBundle.getBundle(PROP_FILE);
-        } catch (MissingResourceException mre) {
-            throw new DirServiceException("Properties file " + PROP_FILE + ".properties not found");
-        }
+        props = loadProperties(PROP_FILE);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getStringProperty(String propName) throws DirServiceException {
         try {
-            return props.getString(propName);
+            return (String) props.get(propName);
         } catch (MissingResourceException mre) {
             throw new DirServiceException("Property value for key " + propName + " not found");
         }
     }
 
-   @Override
-   public String getOptionalStringProperty(String propName) {
-       try {
-           return props.getString(propName);
-       } catch (MissingResourceException mre) {
-           return null;
-       }
-   }
+    @Override
+    public String getOptionalStringProperty(String propName) {
+        try {
+            return (String) props.get(propName);
+        } catch (MissingResourceException mre) {
+            return null;
+        }
+    }
 
+    //TODO: Check if the value is already Boolean or don't use JNDI directly.
     @Override
     public boolean getBooleanProperty(String propName) throws DirServiceException {
         try {
-            String s = props.getString(propName);
+            String s = (String) props.get(propName);
             return Boolean.valueOf(s).booleanValue();
         } catch (MissingResourceException mre) {
             throw new DirServiceException("Property value for key " + propName + " not found");
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    //TODO: Check if the value is already Integer or don't use JNDI directly.
     @Override
     public int getIntProperty(String propName) throws DirServiceException {
         try {
-            String s = props.getString(propName);
+            String s = (String) props.get(propName);
             return Integer.parseInt(s);
         } catch (MissingResourceException mre) {
             throw new DirServiceException("Property value for key " + propName + " not found");
         } catch (NumberFormatException nfe) {
             throw new DirServiceException("Invalid value for integer property " + propName);
         }
+    }
+
+    /**
+     * Load properties from JNDI context or properties file as fall-back.
+     *
+     * @return Hashtable of the properties
+     * @throws DirServiceException if no file found.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private Hashtable loadProperties(String propFile) throws DirServiceException {
+
+        if (props == null) {
+            props = new Hashtable<Object,Object>();
+
+            try {
+                Context initContext = new InitialContext();
+                if (initContext != null) {
+                    // Load from JNDI. Tomcat puts its stuff under java:comp/env:
+                    for (Enumeration<Binding> e = initContext.listBindings(TOMCAT_CONTEXT + propFile); e.hasMoreElements();) {
+                        Binding binding = e.nextElement();
+                        props.put(binding.getName(), binding.getObject());
+                    }
+                }
+            } catch (NamingException mre) {
+                //throw new DirServiceException("JNDI not configured properly");
+            }
+
+            // Load from properties file
+            if (props.size() == 0 || props.containsKey("propertiesfile")) {
+                try {
+                    Properties fileProps = new Properties();
+                    InputStream inStream = null;
+
+                    if (props.containsKey("propertiesfile")) {
+                        try {
+                            inStream = new FileInputStream((String) props.get("propertiesfile"));
+                        } catch (Exception e) {
+                            throw new DirServiceException("Properties file not found");
+                        }
+                    } else {
+                        inStream = getClass().getResourceAsStream("/"+ propFile + ".properties");
+                        if (inStream == null) {
+                            throw new DirServiceException("Properties file " + propFile + ".properties is not found in the classpath");
+                        }
+                    }
+                    fileProps.load(inStream);
+                    inStream.close();
+                    props.putAll(fileProps);
+                } catch (IOException mre) {
+                    throw new DirServiceException("Properties file " + propFile + ".properties is not readable");
+                }
+            }
+        }
+        return props;
     }
 }
