@@ -74,7 +74,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
     /**
      * Initializes the DirectoryService implementation class by loading paramters from properties files and creating environment
-     * properties for DirContext. The initial SirectoryContext uses Connection pooling.
+     * properties for DirContext. The initial DirectoryContext uses Connection pooling.
      *
      * @throws DirServiceException
      * @see <a href="http://docs.oracle.com/javase/tutorial/jndi/ldap/pool.html">More info about LDAP connection pooling</a>
@@ -105,6 +105,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         String ldapCtxUrl = ldapUrl + ldapCtx;
         env.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_FACTORY);
         env.put(Context.PROVIDER_URL, ldapCtxUrl);
+        assert ldapRef != null;
         env.put(Context.REFERRAL, ldapRef);
 
         // Enable connection pooling
