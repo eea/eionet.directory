@@ -145,7 +145,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             }
 
         } catch (NamingException ne) {
-            throw new DirServiceException("Exception, creating LDAP context: " + ne.toString());
+            throw new DirServiceException("Exception creating LDAP context: " + ne.toString());
         }
 
         return aCtx;
@@ -475,7 +475,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 } catch (AuthenticationException authe) {
                     throw new DirServiceException("Authentication failed: " + authe.toString());
                 } catch (NamingException ne) {
-                    throw new DirServiceException("Exception reating backup LDAP context: " + ne.toString());
+                    throw new DirServiceException("Exception creating backup LDAP context: " + ne.toString());
                 }
             } else {
                 throw new SecurityException("Cannot connect to : " + ldapUrl + " " + commE.toString());
@@ -904,7 +904,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
      */
     private String getRoleUrl(String role) {
 
-        String url = String.format(roleSiteUrl, role);
+        String url = String.format(roleSiteUrl == null ? "" : roleSiteUrl, role);
         return url;
     }
 }

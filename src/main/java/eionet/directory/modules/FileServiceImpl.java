@@ -67,21 +67,15 @@ public class FileServiceImpl implements FileServiceIF {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
    @Override
-   public String getOptionalStringProperty(String propName){
+   public String getOptionalStringProperty(String propName) {
        try {
            return props.getString(propName);
        } catch (MissingResourceException mre) {
-           return "";
+           return null;
        }
    }
 
-   /**
-    * {@inheritDoc}
-    */
     @Override
     public boolean getBooleanProperty(String propName) throws DirServiceException {
         try {
