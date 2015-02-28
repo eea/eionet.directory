@@ -1,14 +1,9 @@
 package eionet.directory.modules;
 
-import eionet.directory.DirServiceException;
-import org.junit.Test;
 import org.junit.After;
 import org.junit.Before;
 
-import java.util.Hashtable;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.InitialDirContext;
+import java.util.ArrayList;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -21,6 +16,8 @@ public class JNDIAware {
 
     static String aclContextLocation = "java:comp/env/eionetdir/";
     private boolean isSetupCore = false;
+    protected InitialContext context;
+    private ArrayList<String> addedProps = new ArrayList<String>();
 
     /**
      * Clean up. This does not unlink the bound objects.
@@ -30,11 +27,14 @@ public class JNDIAware {
         if (!isSetupCore) {
             return;
         }
-        InitialContext ic = new InitialContext();
-        ic.destroySubcontext("java:comp/env/eionetdir");
-        ic.destroySubcontext("java:comp/env");
-        ic.destroySubcontext("java:comp");
-        ic.destroySubcontext("java:");
+        for (String name : addedProps) {
+            context.unbind(aclContextLocation + name);
+        }
+        addedProps.clear();
+        context.destroySubcontext("java:comp/env/eionetdir");
+        context.destroySubcontext("java:comp/env");
+        context.destroySubcontext("java:comp");
+        context.destroySubcontext("java:");
         isSetupCore = false;
     }
 
@@ -46,12 +46,20 @@ public class JNDIAware {
         System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "org.apache.naming.java.javaURLContextFactory");
         System.setProperty(Context.URL_PKG_PREFIXES, "org.apache.naming");
 
-        InitialContext ic = new InitialContext();
-        ic.createSubcontext("java:");
-        ic.createSubcontext("java:comp");
-        ic.createSubcontext("java:comp/env");
-        ic.createSubcontext("java:comp/env/eionetdir");
+        context = new InitialContext();
+        context.createSubcontext("java:");
+        context.createSubcontext("java:comp");
+        context.createSubcontext("java:comp/env");
+        context.createSubcontext("java:comp/env/eionetdir");
         isSetupCore = true;
+    }
+
+    /**
+     * Add a property to Tomcat's context.
+     */
+    void addToTomcatContext(String name, String value) throws Exception {
+        context.bind(aclContextLocation + name,  value);
+        addedProps.add(name);
     }
 
 }

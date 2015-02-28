@@ -1,7 +1,7 @@
 package eionet.directory.modules;
 
 import eionet.directory.DirServiceException;
-import eionet.directory.FileServiceIF;
+import eionet.directory.FileService;
 
 import java.util.Vector;
 import javax.naming.directory.Attribute;
@@ -15,6 +15,7 @@ import org.junit.After;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * Test FileServiceImpl methods.
@@ -28,19 +29,15 @@ public class FileServiceImplTest extends JNDIAware {
 
     @Test
     public void withIncompleteTomcatContext() throws Exception {
-        InitialContext ic = new InitialContext();
-        ic.bind(aclContextLocation + "admin", "true");
+        addToTomcatContext("admin", "true");
         FileServiceImpl fileService = new FileServiceImpl();
-        // Clean up or it will affect other tests.
-        ic.unbind(aclContextLocation + "admin");
+        assertNull(fileService.getOptionalStringProperty(FileService.LDAP_URL));
     }
 
     @Test
     public void loadSpecifiedFile() throws Exception {
-        InitialContext ic = new InitialContext();
-        ic.bind(aclContextLocation + "propertiesfile", "target/test-classes/test-ldaps.properties");
+        addToTomcatContext("propertiesfile", "target/test-classes/test-ldaps.properties");
         FileServiceImpl fileService = new FileServiceImpl();
-        assertEquals("ldaps://ldap.eionet.europa.eu/", fileService.getStringProperty(FileServiceIF.LDAP_URL));
-        ic.unbind(aclContextLocation + "propertiesfile");
+        assertEquals("ldaps://ldap.eionet.europa.eu/", fileService.getStringProperty(FileService.LDAP_URL));
     }
 }

@@ -32,14 +32,10 @@ public class DirectoryService25ImplTest extends JNDIAware {
 
     @Test
     public void getPersonWithLdaps() throws Exception {
-        InitialContext ic = new InitialContext();
-        //TODO: How can we test that the correct file is read?
-        ic.bind(aclContextLocation + "propertiesfile", "target/test-classes/test-ldaps.properties");
+        addToTomcatContext("propertiesfile", "target/test-classes/test-ldaps.properties");
 
         DirectoryService25Impl ds = new DirectoryService25Impl();
-
         Hashtable<String, String> person = ds.getPerson("roug");
         assertEquals("Søren Roug", person.get("FULLNAME"));
-        ic.unbind(aclContextLocation + "propertiesfile");
     }
 }

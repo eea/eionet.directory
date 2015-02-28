@@ -26,7 +26,7 @@ package eionet.directory.modules;
 
 import eionet.directory.DirServiceException;
 import eionet.directory.DirectoryServiceIF;
-import eionet.directory.FileServiceIF;
+import eionet.directory.FileService;
 import eionet.directory.dto.MemberDTO;
 import eionet.directory.dto.OrganisationDTO;
 import eionet.directory.dto.RoleDTO;
@@ -97,25 +97,25 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
      */
     public DirectoryService25Impl() throws DirServiceException {
 
-        FileServiceIF fsrv = new FileServiceImpl();
+        FileService fsrv = new FileServiceImpl();
 
-        ldapUrl = fsrv.getStringProperty(FileServiceIF.LDAP_URL);
-        ldapCtx = fsrv.getStringProperty(FileServiceIF.LDAP_CTX);
-        ldapRef = fsrv.getStringProperty(FileServiceIF.LDAP_REF);
-        roleAttr = fsrv.getStringProperty(FileServiceIF.LDAP_ATTR_ROLENAME);
-        roleDesc = fsrv.getStringProperty(FileServiceIF.LDAP_ATTR_ROLEDESC);
-        userIdAttr = fsrv.getStringProperty(FileServiceIF.LDAP_ATTR_USERID);
-        userDir = fsrv.getStringProperty(FileServiceIF.LDAP_USER_DIR);
-        mailAttr = fsrv.getStringProperty(FileServiceIF.LDAP_ATTR_MAIL);
-        userFullNameAttr = fsrv.getStringProperty(FileServiceIF.LDAP_ATTR_FULLNAME);
+        ldapUrl = fsrv.getStringProperty(FileService.LDAP_URL);
+        ldapCtx = fsrv.getStringProperty(FileService.LDAP_CTX);
+        ldapRef = fsrv.getStringProperty(FileService.LDAP_REF);
+        roleAttr = fsrv.getStringProperty(FileService.LDAP_ATTR_ROLENAME);
+        roleDesc = fsrv.getStringProperty(FileService.LDAP_ATTR_ROLEDESC);
+        userIdAttr = fsrv.getStringProperty(FileService.LDAP_ATTR_USERID);
+        userDir = fsrv.getStringProperty(FileService.LDAP_USER_DIR);
+        mailAttr = fsrv.getStringProperty(FileService.LDAP_ATTR_MAIL);
+        userFullNameAttr = fsrv.getStringProperty(FileService.LDAP_ATTR_FULLNAME);
 
-        orgIdAttr = fsrv.getStringProperty(FileServiceIF.LDAP_ATTR_ORGID);
-        orgDir = fsrv.getStringProperty(FileServiceIF.LDAP_ORGANISATION_DIR);
+        orgIdAttr = fsrv.getStringProperty(FileService.LDAP_ATTR_ORGID);
+        orgDir = fsrv.getStringProperty(FileService.LDAP_ORGANISATION_DIR);
 
-        ldapPrincipal = fsrv.getOptionalStringProperty(FileServiceIF.LDAP_PRINCIPAL);
-        ldapPassword = fsrv.getOptionalStringProperty(FileServiceIF.LDAP_PASSWORD);
-        ldapBackUpUrl = fsrv.getOptionalStringProperty(FileServiceIF.LDAP_BACKUP);
-        roleSiteUrl = fsrv.getOptionalStringProperty(FileServiceIF.LDAP_ROLE_SITE_URL);
+        ldapPrincipal = fsrv.getOptionalStringProperty(FileService.LDAP_PRINCIPAL);
+        ldapPassword = fsrv.getOptionalStringProperty(FileService.LDAP_PASSWORD);
+        ldapBackUpUrl = fsrv.getOptionalStringProperty(FileService.LDAP_BACKUP);
+        roleSiteUrl = fsrv.getOptionalStringProperty(FileService.LDAP_ROLE_SITE_URL);
 
         env = new Hashtable<String, String>();
         String ldapCtxUrl = ldapUrl + ldapCtx;
@@ -303,8 +303,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                     role.setSubroles(subroles);
                 }
                 role.setMembersUrl(getRoleUrl(roleId));
-            } // end if searchResults.hasMore()
-            else {
+            } else {
                 throw new DirServiceException("No role in directory " + roleId);
             }
 
@@ -447,7 +446,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     * Returns mail addresses of the role
+     * Returns mail addresses of the role.
      *
      * @param roleID : ID of the role
      * @return String
@@ -582,7 +581,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             List<String> subMembers = new ArrayList<String>();
 
             if (subroleMembers != null) {
-                for (Iterator<Attribute> it = subroleMembers.iterator(); it.hasNext(); ) {
+                for (Iterator<Attribute> it = subroleMembers.iterator(); it.hasNext();) {
                     Attribute at = it.next();
                     NamingEnumeration nu = at.getAll();
                     while (nu.hasMore()) {
@@ -790,6 +789,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
     /**
      * Finds an attribute from search results and returns the value, if null, returns an empty String.
+     *
+     * @throws DirServiceException if unable to get attribute value.
      */
     private String getAttributeValue(SearchResult sr, String name) throws DirServiceException {
 

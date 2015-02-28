@@ -37,7 +37,7 @@ import javax.naming.Binding;
 import javax.naming.NamingException;
 
 import eionet.directory.DirServiceException;
-import eionet.directory.FileServiceIF;
+import eionet.directory.FileService;
 
 /**
  * File services implementation.
@@ -45,7 +45,7 @@ import eionet.directory.FileServiceIF;
  * @author  Søren Roug
  * @version 2.0
  */
-public class FileServiceImpl implements FileServiceIF {
+public class FileServiceImpl implements FileService {
 
     /** Tomcat puts its stuff under java:comp/env. */
     private static final String TOMCAT_CONTEXT = "java:comp/env/";
