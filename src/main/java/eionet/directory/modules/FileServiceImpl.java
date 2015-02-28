@@ -42,8 +42,8 @@ import eionet.directory.FileServiceIF;
 /**
  * File services implementation.
  *
- * @author  Rando Valt
- * @version 1.1
+ * @author  Søren Roug
+ * @version 2.0
  */
 public class FileServiceImpl implements FileServiceIF {
 
@@ -51,37 +51,34 @@ public class FileServiceImpl implements FileServiceIF {
     private static final String TOMCAT_CONTEXT = "java:comp/env/";
 
     /** Properties file prefix. */
-    public static final String PROP_FILE = "eionetdir";
+    private static final String PROP_FILE = "eionetdir";
 
     /** Properties resource. */
-    private Hashtable props;
+    private Hashtable<Object,Object> props;
 
     /**
      * Creates new FileServiceImpl.
      * @throws DirServiceException if properties are not found.
      */
     public FileServiceImpl() throws DirServiceException {
-        props = loadProperties(PROP_FILE);
+        loadProperties(PROP_FILE);
     }
 
     @Override
     public String getStringProperty(String propName) throws DirServiceException {
-        try {
-            return (String) props.get(propName);
-        } catch (MissingResourceException mre) {
+        Object o = props.get(propName);
+        if (o == null) {
             throw new DirServiceException("Property value for key " + propName + " not found");
         }
+        return (String) o;
     }
 
     @Override
     public String getOptionalStringProperty(String propName) {
-        try {
-            return (String) props.get(propName);
-        } catch (MissingResourceException mre) {
-            return null;
-        }
+        return (String) props.get(propName);
     }
 
+/*
     //TODO: Check if the value is already Boolean or don't use JNDI directly.
     @Override
     public boolean getBooleanProperty(String propName) throws DirServiceException {
@@ -105,15 +102,15 @@ public class FileServiceImpl implements FileServiceIF {
             throw new DirServiceException("Invalid value for integer property " + propName);
         }
     }
-
+*/
     /**
      * Load properties from JNDI context or properties file as fall-back.
      *
      * @return Hashtable of the properties
      * @throws DirServiceException if no file found.
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private Hashtable loadProperties(String propFile) throws DirServiceException {
+    //@SuppressWarnings({ "unchecked", "rawtypes" })
+    private void loadProperties(String propFile) throws DirServiceException {
 
         if (props == null) {
             props = new Hashtable<Object,Object>();
@@ -144,7 +141,7 @@ public class FileServiceImpl implements FileServiceIF {
                             throw new DirServiceException("Properties file not found");
                         }
                     } else {
-                        inStream = getClass().getResourceAsStream("/"+ propFile + ".properties");
+                        inStream = getClass().getResourceAsStream("/" + propFile + ".properties");
                         if (inStream == null) {
                             throw new DirServiceException("Properties file " + propFile + ".properties is not found in the classpath");
                         }
@@ -157,6 +154,5 @@ public class FileServiceImpl implements FileServiceIF {
                 }
             }
         }
-        return props;
     }
 }

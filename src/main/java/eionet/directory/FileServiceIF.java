@@ -120,12 +120,12 @@ public interface FileServiceIF {
     /**
      * Returns boolean type property from the properties file
      */
-    public boolean getBooleanProperty(String propName) throws DirServiceException;
+    //public boolean getBooleanProperty(String propName) throws DirServiceException;
 
     /**
      * Returns int type property from the properties file
      */
-    public int getIntProperty(String propName) throws DirServiceException;
+    //public int getIntProperty(String propName) throws DirServiceException;
 
     /**
      * Returns String type property from the properties file if exists. Otherwise empty String is returned.

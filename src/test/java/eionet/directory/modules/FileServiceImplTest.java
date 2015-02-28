@@ -1,8 +1,7 @@
 package eionet.directory.modules;
 
 import eionet.directory.DirServiceException;
-import org.junit.Test;
-import org.junit.After;
+import eionet.directory.FileServiceIF;
 
 import java.util.Vector;
 import javax.naming.directory.Attribute;
@@ -11,6 +10,8 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import org.junit.Test;
+import org.junit.After;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -18,35 +19,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test FileServiceImpl methods.
  */
-public class FileServiceImplTest {
-
-    static String aclContextLocation = "java:comp/env/eionetdir/";
-    static boolean isSetupCore = false;
-
-    public static void setUpCore() throws Exception {
-        if (isSetupCore) {
-            return;
-        }
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "org.apache.naming.java.javaURLContextFactory");
-        System.setProperty(Context.URL_PKG_PREFIXES, "org.apache.naming");
-        InitialContext ic = new InitialContext();
-
-        ic.createSubcontext("java:");
-        ic.createSubcontext("java:comp");
-        ic.createSubcontext("java:comp/env");
-        ic.createSubcontext("java:comp/env/jdbc");
-        ic.createSubcontext("java:comp/env/eionetdir");
-        isSetupCore = true;
-    }
-
-    @After
-    public void cleanUp() {
-        try {
-            InitialContext ic = new InitialContext();
-            ic.destroySubcontext("java:comp/env/eionetdir");
-        } catch (NamingException e) {
-        }
-    }
+public class FileServiceImplTest extends JNDIAware {
 
     @Test
     public void standardInitialisation() throws Exception {
@@ -54,11 +27,20 @@ public class FileServiceImplTest {
     }
 
     @Test
-    public void withTomcatContext() throws Exception {
-        setUpCore();
+    public void withIncompleteTomcatContext() throws Exception {
         InitialContext ic = new InitialContext();
         ic.bind(aclContextLocation + "admin", "true");
         FileServiceImpl fileService = new FileServiceImpl();
+        // Clean up or it will affect other tests.
+        ic.unbind(aclContextLocation + "admin");
     }
 
+    @Test
+    public void loadSpecifiedFile() throws Exception {
+        InitialContext ic = new InitialContext();
+        ic.bind(aclContextLocation + "propertiesfile", "target/test-classes/test-ldaps.properties");
+        FileServiceImpl fileService = new FileServiceImpl();
+        assertEquals("ldaps://ldap.eionet.europa.eu/", fileService.getStringProperty(FileServiceIF.LDAP_URL));
+        ic.unbind(aclContextLocation + "propertiesfile");
+    }
 }

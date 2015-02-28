@@ -15,10 +15,11 @@
  * The Original Code code was developed for the European
  * Environment Agency (EEA) under the IDA/EINRC framework contract.
  *
- * Copyright (c) 2000-2002 by European Environment Agency.  All
+ * Copyright (c) 2000-2015 by European Environment Agency.  All
  * Rights Reserved.
  *
  * Original Code: Kaido Laine (TietoEnator)
+ * Contributor: Søren Roug, European Environment Agency
  */
 
 package eionet.directory.modules;
@@ -30,9 +31,26 @@ import eionet.directory.dto.MemberDTO;
 import eionet.directory.dto.OrganisationDTO;
 import eionet.directory.dto.RoleDTO;
 
-import javax.naming.*;
-import javax.naming.directory.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import java.util.Vector;
+import javax.naming.AuthenticationException;
+import javax.naming.CommunicationException;
+import javax.naming.Context;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.InitialDirContext;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
+import javax.naming.NameClassPair;
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
 
 /**
  * Provides functionality related to LDAP directory server as login, getting roles and getting e-mail addresses for users of a
@@ -58,11 +76,9 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     private String roleAttr;
     private String roleDesc;
     private String userIdAttr;
-    private String userFullNameAttr; // KL 020114
+    private String userFullNameAttr;
     private String mailAttr;
-    /**
-     * Url of the role site in Eionet Dir.
-     */
+    /** * Url of the role site in Eionet Dir. */
     private String roleSiteUrl;
 
     private String orgDir;
@@ -171,7 +187,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             dirCtx = sessionLogin();
             searchFilter = "(&(objectclass=groupOfUniqueNames)(" + roleAttr + "=" + roleId + "))";
             NamingEnumeration searchResults = searchSubTree(dirCtx, searchFilter);
-            // KL021031
+
             if (searchResults != null && searchResults.hasMore()) {
 
                 SearchResult sr = (SearchResult) searchResults.next();
@@ -214,6 +230,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             }
 
         } catch (NoSuchElementException nose) {
+            // Exception ignored
         } catch (NamingException ne) {
             throw new DirServiceException("NamingException, if getting role information for role ID= " + roleId + ": "
                     + ne.toString());
@@ -244,7 +261,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             dirCtx = sessionLogin();
             searchFilter = "(&(objectclass=groupOfUniqueNames)(" + roleAttr + "=" + roleId + "))";
             NamingEnumeration searchResults = searchSubTree(dirCtx, searchFilter);
-            // KL021031
+
             if (searchResults != null && searchResults.hasMore()) {
 
                 SearchResult sr = (SearchResult) searchResults.next();
@@ -292,6 +309,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             }
 
         } catch (NoSuchElementException nose) {
+            // Exception ignored
         } catch (NamingException ne) {
             throw new DirServiceException("NamingException, if getting role information for role ID= " + roleId + ": "
                     + ne.toString());
@@ -348,6 +366,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             }
 
         } catch (NoSuchElementException nose) {
+            // Exception ignored
         } catch (NamingException ne) {
             throw new DirServiceException("NamingException, if getting role information for role ID= " + roleID + ": "
                     + ne.toString());
@@ -665,7 +684,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
             NamingEnumeration searchResults =
                     searchSubTree(dirCtx, "ou=Users", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
-            // KL021031
+
             while (searchResults != null && searchResults.hasMore()) {
 
                 SearchResult sr = (SearchResult) searchResults.next();
@@ -818,11 +837,11 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 org.put(ORG_HOMEPAGE_ATTR, homepage);
                 org.put(ORG_OCCUPANTS_ATTR, users);
 
-            } // end if searchResults.hasMore()
-            else {
+            } else {
                 throw new DirServiceException("No such organisation in directory: " + orgId);
             }
         } catch (NoSuchElementException nose) {
+            // Exception ignored
         } catch (NamingException ne) {
             throw new DirServiceException("NamingException when getting information for organisation (ID= " + orgId + "): "
                     + ne.toString());
