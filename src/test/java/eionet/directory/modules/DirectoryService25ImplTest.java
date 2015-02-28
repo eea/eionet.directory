@@ -2,16 +2,8 @@ package eionet.directory.modules;
 
 import eionet.directory.DirServiceException;
 import org.junit.Test;
-import org.junit.After;
-import org.junit.Before;
 
 import java.util.Hashtable;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.InitialDirContext;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

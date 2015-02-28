@@ -3,17 +3,8 @@ package eionet.directory.modules;
 import eionet.directory.DirServiceException;
 import eionet.directory.FileService;
 
-import java.util.Vector;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-
 import org.junit.Test;
 import org.junit.After;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
