@@ -38,3 +38,17 @@ If you want to continue with property files, but specify with JNDI, what file to
 </Context>
 ```
 
+Obsolete properties
+-------------------
+The following properties in eionetdir.properties were needed in earlier versions of the package:
+```
+circa.vcirca
+circa.url.public
+circa.url.members
+circa.role.function.prefix
+circa.role.function.suffix
+circa.version
+ldap.user.context
+ldap.domain
+```
+
