@@ -78,7 +78,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     private String userIdAttr;
     private String userFullNameAttr;
     private String mailAttr;
-    /** * Url of the role site in Eionet Dir. */
+    /** Url of the role site in Eionet Dir. */
     private String roleSiteUrl;
 
     private String orgDir;
@@ -89,7 +89,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     Hashtable<String, String> env;
 
     /**
-     * Initializes the DirectoryService implementation class by loading paramters from properties files and creating environment
+     * Initializes the DirectoryService implementation class by loading
+     * parameters from properties files and creating environment
      * properties for DirContext. The initial DirectoryContext uses Connection pooling.
      *
      * @throws DirServiceException
@@ -137,8 +138,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     * Creating directory context. Connecting to LDAP server using anonymous login or login with principals configured in
-     * eionet.properties.
+     * Creating directory context. Connecting to LDAP server using anonymous
+     * login or login with principals configured in eionet.properties.
      *
      * @throws DirServiceException
      */
@@ -510,9 +511,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         }
     }
 
-    /**
-     *
-     */
     @Override
     public Vector<String> getOccupants(String roleID) throws DirServiceException {
 
@@ -565,7 +563,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
     /**
      * @param um
-     * @return
+     * @return a list of persons who are members.
      * @throws DirServiceException
      */
     private List<MemberDTO> parseMembers(Attribute um) throws DirServiceException {
@@ -663,7 +661,13 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     * @param uId
+     * Look up a person based on uid under <b>ou=Users</b>. If there is an <b>o</b> attribute, then
+     * that is used as an identifier to look up the organisation name. If an
+     * organisation is found then the organisationDTO is added to the MemberDTO.
+     * If the <b>o</b> attribute is just a text string with the full organisation
+     * name, then it is ignored.
+     *
+     * @param uId - uid of person.
      * @return MemberDTO
      * @throws DirServiceException
      */
@@ -754,9 +758,6 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
     }
 
-    /**
-     *
-     */
     @Override
     public Vector<String> listOrganisations() throws DirServiceException {
 
@@ -808,7 +809,14 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     *
+     * Returns an Organisation in HASH.
+     * includes STRING attributes:
+     * ID, NAME, ADDRESS, BUSINESSCATEGORY, HOMEPAGE, COUNTRY, PHONE, FAX,
+     * DESCRIPTION, MAIL
+     * ARRAY attribute: OCCUPANTS - includes user names of organisation members
+     * URL: Url in Circa for members' access
+     * @param orgId - the <b>cn</b> of the organisation.
+     * @throws DirServiceException if there is no matching organisation.
      */
     @Override
     public Hashtable<String, Object> getOrganisation(String orgId) throws DirServiceException {
@@ -856,8 +864,11 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     * @param orgId
-     * @return OrganisationDTO
+     * Look up an organisation on the <b>cn</b> under <b>ou=Organisations</b>.
+     *
+     * @param orgId - the <b>cn</b> of the organisation.
+     * @return Always returns an OrganisationDTO instance, but the attributes
+     * are null if the organisation isn't found.
      * @throws DirServiceException
      */
     public OrganisationDTO getOrganisationDTO(String orgId) throws DirServiceException {

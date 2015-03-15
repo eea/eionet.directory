@@ -1,4 +1,4 @@
-/**
+/*
  * The contents of this file are subject to the Mozilla Public
  * License Version 1.1 (the "License"); you may not use this file
  * except in compliance with the License. You may obtain a copy of
@@ -29,7 +29,7 @@ import java.util.Vector;
 import eionet.directory.dto.RoleDTO;
 
 /**
- * Method decalarations for directory services.
+ * Method declarations for directory services.
  *
  * @author  Kaido Laine
  * @version 1.1
@@ -38,7 +38,7 @@ public interface DirectoryServiceIF {
 
     /*
      * Closes the opened context object
-     * @exception ServiceException
+     * @throws ServiceException
      */
     // public void close() throws ServiceException;
 
@@ -81,53 +81,54 @@ public interface DirectoryServiceIF {
     public final String ORG_URL_ATTR = "URL";
 
     /**
-     * Email of the given role
+     * Email of the given role.
      */
     public String getRoleMailAddress(String roleId) throws DirServiceException;
 
     /**
-     * Person with the given uid
-     * Miscannelaous data in a HASH
+     * Lookup person with the given uid.
+     * Miscellaneous data in a HASH.
      */
     public Hashtable<String, String> getPerson(String uId) throws DirServiceException;
 
     /**
-     * Role of the given ID
+     * Role of the given ID.
      */
     public Hashtable<String, Object> getRole(String roleId) throws DirServiceException;
 
     /**
-     * Role of the given ID
+     * Role of the given ID.
      */
     public RoleDTO getRoleDTO(String roleId) throws DirServiceException;
 
     /**
-     * Login to the LDAP server with credentials
+     * Login to the LDAP server with credentials.
+     *
      * @param userID
      * @param userPwd
-     * @exception ServiceException
-     * @exception SecurityException, if login is not allowed
+     * @throws ServiceException
+     * @throws SecurityException, if login is not allowed
      */
     public void sessionLogin(String userID, String userPwd) throws DirServiceException, SecurityException;
 
     /**
-     * Returns the roles of the user
+     * Returns the roles of the user.
+     *
      * @param userID
      * @return Vector, contains role names
-     *
      */
     public Vector<String> getRoles(String userID) throws DirServiceException;
 
     /**
-     * Returns the occupants of the role
+     * Returns the occupants of the role.
+     *
      * @param roleID
      * @return Vector, contains user (login) names
-     *
      */
     public Vector<String> getOccupants(String roleID) throws DirServiceException;
 
     /**
-     * Returns the full name of the user
+     * Returns the full name of the user.
      * @param userID
      * @return String
      *
@@ -135,18 +136,20 @@ public interface DirectoryServiceIF {
     public String getFullName(String userID) throws DirServiceException;
 
     /**
-     * lists organisation IDs in LDAP Organisation folder
+     * Lists organisation IDs in LDAP Organisation folder.
      * folder specified in eionetdir.properties ldap.organisation.dir
      */
     public Vector<String> listOrganisations() throws DirServiceException;
 
     /**
-     * returns an Organisation in HASH
+     * Returns an Organisation in HASH.
      * includes STRING attributes:
      * ID, NAME, ADDRESS, BUSINESSCATEGORY, HOMEPAGE, COUNTRY, PHONE, FAX,
      * DESCRIPTION, MAIL
      * ARRAY attribute: OCCUPANTS - includes user names of organisation members
      * URL: Url in Circa for members' access
+     * @param orgId - the <b>cn</b> of the organisation.
+     * @throws DirServiceException if there is no matching organisation.
      */
     public Hashtable<String, Object> getOrganisation(String orgId) throws DirServiceException;
 
