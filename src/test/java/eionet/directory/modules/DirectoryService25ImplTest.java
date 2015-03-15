@@ -1,6 +1,8 @@
 package eionet.directory.modules;
 
 import eionet.directory.DirServiceException;
+import org.junit.rules.ExpectedException;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Hashtable;
@@ -29,5 +31,18 @@ public class DirectoryService25ImplTest extends JNDIAware {
         DirectoryService25Impl ds = new DirectoryService25Impl();
         Hashtable<String, String> person = ds.getPerson("roug");
         assertEquals("Søren Roug", person.get("FULLNAME"));
+    }
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
+    @Test
+    public void getPersonWithBadServer() throws Exception {
+        addToTomcatContext("propertiesfile", "target/test-classes/test-badldap.properties");
+
+        DirectoryService25Impl ds = new DirectoryService25Impl();
+        exception.expect(SecurityException.class);
+        exception.expectMessage("Cannot connect to : ldap://localhost:40389/");
+        Hashtable<String, String> person = ds.getPerson("roug");
     }
 }
