@@ -1,6 +1,8 @@
 package eionet.directory.modules;
 
 import eionet.directory.DirServiceException;
+import eionet.directory.DirectoryServiceIF;
+import eionet.directory.dto.OrganisationDTO;
 import org.junit.rules.ExpectedException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -16,12 +18,47 @@ import static org.junit.Assert.assertEquals;
  */
 public class DirectoryService25ImplTest extends JNDIAware {
 
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     @Test
     public void getPerson() throws DirServiceException {
         DirectoryService25Impl ds = new DirectoryService25Impl();
         // If my name is not in LDAP then I don't care if the test fails.
         Hashtable<String, String> person = ds.getPerson("roug");
         assertEquals("Søren Roug", person.get("FULLNAME"));
+    }
+
+    @Test
+    public void getOrganisationDTO() throws DirServiceException {
+        DirectoryService25Impl ds = new DirectoryService25Impl();
+        // If EEA is not in LDAP then I don't care if the test fails.
+        OrganisationDTO org = ds.getOrganisationDTO("eu_eea");
+        assertEquals("European Environment Agency", org.getName());
+        assertEquals("eu_eea", org.getOrgId());
+    }
+
+    @Test
+    public void getOrgDTONotExisting() throws DirServiceException {
+        DirectoryService25Impl ds = new DirectoryService25Impl();
+        OrganisationDTO org = ds.getOrganisationDTO("au_nothere");
+        assertEquals(null, org.getName());
+    }
+
+    @Test
+    public void getOrganisation() throws DirServiceException {
+        DirectoryService25Impl ds = new DirectoryService25Impl();
+        Hashtable<String, Object> org = ds.getOrganisation("eu_eea");
+        assertEquals("European Environment Agency", org.get(DirectoryServiceIF.ORG_NAME_ATTR));
+        assertEquals("eu_eea", org.get(DirectoryServiceIF.ORG_ID_ATTR));
+    }
+
+    @Test
+    public void getOrgNotExisting() throws DirServiceException {
+        DirectoryService25Impl ds = new DirectoryService25Impl();
+        exception.expect(DirServiceException.class);
+        exception.expectMessage("No such organisation in directory: au_nothere");
+        Hashtable<String, Object> org = ds.getOrganisation("au_nothere");
     }
 
     @Test
@@ -32,9 +69,6 @@ public class DirectoryService25ImplTest extends JNDIAware {
         Hashtable<String, String> person = ds.getPerson("roug");
         assertEquals("Søren Roug", person.get("FULLNAME"));
     }
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     @Test
     public void getPersonWithBadServer() throws Exception {
