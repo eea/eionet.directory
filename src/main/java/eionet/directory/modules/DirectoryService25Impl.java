@@ -661,7 +661,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     * Look up a person based on uid under <b>ou=Users</b>. If there is an <b>o</b> attribute, then
+     * Look up a person based on uid under <b>ou=Users</b>. Obsolete: If there is an <b>o</b> attribute, then
      * that is used as an identifier to look up the organisation name. If an
      * organisation is found then the organisationDTO is added to the MemberDTO.
      * If the <b>o</b> attribute is just a text string with the full organisation
@@ -717,6 +717,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 if (fax != null) {
                     member.setFax((String) fax.get());
                 }
+                /*
+                 * Removed: Organisation name in now implemented as a membershow of a group under ou=Organisations.
                 if (org != null) {
                     String orgId = (String) org.get();
                     OrganisationDTO organisation = getOrganisationDTO(orgId);
@@ -725,6 +727,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                     }
                     member.setOrganisation(organisation);
                 }
+                */
 
             } // end if searchResults.hasMore()
 
