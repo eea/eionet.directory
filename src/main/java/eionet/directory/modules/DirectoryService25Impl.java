@@ -661,11 +661,12 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     }
 
     /**
-     * Look up a person based on uid under <b>ou=Users</b>. Obsolete: If there is an <b>o</b> attribute, then
+     * Look up a person based on uid under <b>ou=Users</b>. If there is an
+     * <b>o</b> attribute, and it is less than 10 characters then
      * that is used as an identifier to look up the organisation name. If an
      * organisation is found then the organisationDTO is added to the MemberDTO.
-     * If the <b>o</b> attribute is just a text string with the full organisation
-     * name, then it is ignored.
+     * If it is not found or the string is 10 or more characters then it is
+     * assumed that it is the full organisation name.
      *
      * @param uId - uid of person.
      * @return MemberDTO
@@ -694,10 +695,10 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 Attribute cn = sr.getAttributes().get("cn");
                 Attribute description = sr.getAttributes().get("description");
                 Attribute mail = sr.getAttributes().get("mail");
-                Attribute phone = sr.getAttributes().get("telephoneNumber");
-                Attribute fax = sr.getAttributes().get("facsimileTelephoneNumber");
+                Attribute phoneAttrVal = sr.getAttributes().get("telephoneNumber");
+                Attribute faxAttrVal = sr.getAttributes().get("facsimileTelephoneNumber");
                 Attribute uid = sr.getAttributes().get("uid");
-                Attribute org = sr.getAttributes().get("o");
+                Attribute orgAttrVal = sr.getAttributes().get("o");
 
                 if (uid != null) {
                     member.setUid((String) uid.get());
@@ -711,23 +712,27 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 if (mail != null) {
                     member.setMail((String) mail.get());
                 }
-                if (phone != null) {
-                    member.setPhone((String) phone.get());
+                if (phoneAttrVal != null) {
+                    member.setPhone((String) phoneAttrVal.get());
                 }
-                if (fax != null) {
-                    member.setFax((String) fax.get());
+                if (faxAttrVal != null) {
+                    member.setFax((String) faxAttrVal.get());
                 }
-                /*
-                 * Removed: Organisation name in now implemented as a membershow of a group under ou=Organisations.
-                if (org != null) {
-                    String orgId = (String) org.get();
-                    OrganisationDTO organisation = getOrganisationDTO(orgId);
-                    if (organisation.getName() == null || organisation.getName().equals("")) {
+                if (orgAttrVal != null) {
+                    String orgId = (String) orgAttrVal.get();
+                    if (orgId.length() >= 10) {
+                        OrganisationDTO organisation = new OrganisationDTO();
+                        organisation.setOrgId(orgId);
                         organisation.setName(orgId);
+                        member.setOrganisation(organisation);
+                    } else {
+                        OrganisationDTO organisation = getOrganisationDTO(orgId);
+                        if (organisation.getName() == null || organisation.getName().equals("")) {
+                            organisation.setName(orgId);
+                        }
+                        member.setOrganisation(organisation);
                     }
-                    member.setOrganisation(organisation);
                 }
-                */
 
             } // end if searchResults.hasMore()
 
@@ -794,6 +799,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     /**
      * Finds an attribute from search results and returns the value, if null, returns an empty String.
      *
+     * @return the value of the attribute.
      * @throws DirServiceException if unable to get attribute value.
      */
     private String getAttributeValue(SearchResult sr, String name) throws DirServiceException {
