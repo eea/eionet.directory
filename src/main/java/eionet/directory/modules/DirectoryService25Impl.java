@@ -31,6 +31,19 @@ import eionet.directory.dto.MemberDTO;
 import eionet.directory.dto.OrganisationDTO;
 import eionet.directory.dto.RoleDTO;
 
+import javax.naming.AuthenticationException;
+import javax.naming.CommunicationException;
+import javax.naming.Context;
+import javax.naming.NameClassPair;
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.InitialDirContext;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -38,19 +51,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.Vector;
-import javax.naming.AuthenticationException;
-import javax.naming.CommunicationException;
-import javax.naming.Context;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.InitialDirContext;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.NameClassPair;
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
 
 /**
  * Provides functionality related to LDAP directory server as login, getting roles and getting e-mail addresses for users of a
@@ -183,11 +183,12 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         Hashtable<String, Object> role = null;
 
         DirContext dirCtx = null;
+        NamingEnumeration  searchResults = null;
 
         try {
             dirCtx = sessionLogin();
             searchFilter = "(&(objectclass=groupOfUniqueNames)(" + roleAttr + "=" + roleId + "))";
-            NamingEnumeration searchResults = searchSubTree(dirCtx, searchFilter);
+            searchResults = searchSubTree(dirCtx, searchFilter);
 
             if (searchResults != null && searchResults.hasMore()) {
 
@@ -238,6 +239,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         } catch (Exception e) {
             throw new DirServiceException("Getting role information for role ID= " + roleId + " failed : " + e.toString());
         } finally {
+            closeSearchResults(searchResults);
             closeDirContext(dirCtx);
         }
 
@@ -257,11 +259,12 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         RoleDTO role = new RoleDTO();
 
         DirContext dirCtx = null;
-
+        NamingEnumeration  searchResults = null;
+        
         try {
             dirCtx = sessionLogin();
             searchFilter = "(&(objectclass=groupOfUniqueNames)(" + roleAttr + "=" + roleId + "))";
-            NamingEnumeration searchResults = searchSubTree(dirCtx, searchFilter);
+            searchResults = searchSubTree(dirCtx, searchFilter);
 
             if (searchResults != null && searchResults.hasMore()) {
 
@@ -316,6 +319,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         } catch (Exception e) {
             throw new DirServiceException("Getting role information for role ID= " + roleId + " failed : " + e.toString());
         } finally {
+            closeSearchResults(searchResults);
             closeDirContext(dirCtx);
         }
 
@@ -333,7 +337,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         String searchFilter;
         List<RoleDTO> roles = new ArrayList<RoleDTO>();
         DirContext dirCtx = null;
-
+        NamingEnumeration  searchResults = null;
+        
         subroleMembers = new ArrayList<Attribute>();
 
         try {
@@ -344,7 +349,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
 
             String query = generateQuery(roleID);
 
-            NamingEnumeration searchResults = searchSubTree(dirCtx, query, searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
+            searchResults = searchSubTree(dirCtx, query, searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
 
             while (searchResults != null && searchResults.hasMore()) {
 
@@ -373,6 +378,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         } catch (Exception e) {
             throw new DirServiceException("Getting role information for role ID= " + roleID + " failed : " + e.toString());
         } finally {
+            closeSearchResults(searchResults);
             closeDirContext(dirCtx);
         }
 
@@ -530,11 +536,12 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         String searchFilter;
         Vector<String> roles = new Vector<String>();
         DirContext dirCtx = null;
-
+        NamingEnumeration  searchResults = null;
+        
         try {
             dirCtx = sessionLogin();
             searchFilter = "(objectclass=groupOfUniqueNames)";
-            NamingEnumeration searchResults = searchSubTree(dirCtx, "ou=Roles", searchFilter, null, SearchControls.SUBTREE_SCOPE);
+            searchResults = searchSubTree(dirCtx, "ou=Roles", searchFilter, null, SearchControls.SUBTREE_SCOPE);
             while (searchResults != null && searchResults.hasMore()) {
 
                 SearchResult sr = (SearchResult) searchResults.next();
@@ -555,6 +562,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         } catch (Exception e) {
             throw new DirServiceException("Getting roles for user " + useriId + " failed : " + e.toString());
         } finally {
+            closeSearchResults(searchResults);
             closeDirContext(dirCtx);
         }
 
@@ -678,7 +686,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         MemberDTO member = new MemberDTO();
 
         DirContext dirCtx = null;
-
+        NamingEnumeration  searchResults = null;
+        
         try {
             dirCtx = sessionLogin();
             // Search for objects that have those matching attributes
@@ -686,8 +695,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             searchFilter = "(&(uid=" + uId + "))";
             String[] attrIDs = {"uid", "mail", "cn", "description", "telephoneNumber", "facsimileTelephoneNumber", "o"};
 
-            NamingEnumeration searchResults =
-                    searchSubTree(dirCtx, "ou=Users", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
+            searchResults = searchSubTree(dirCtx, "ou=Users", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
 
             while (searchResults != null && searchResults.hasMore()) {
 
@@ -744,6 +752,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             System.out.println("Getting user information for user ID= " + uId + " failed : " + e.toString());
             // throw new DirServiceException("Getting user information for user ID= " + uId + " failed : " + e.toString());
         } finally {
+            closeSearchResults(searchResults);
             closeDirContext(dirCtx);
         }
 
@@ -834,11 +843,12 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         String searchFilter = null;
         DirContext dirCtx = null;
 
+        NamingEnumeration searchResults = null;
         try {
             dirCtx = sessionLogin();
 
             searchFilter = "(&(objectclass=groupOfUniqueNames)(cn=" + orgId + "))";
-            NamingEnumeration searchResults = searchSubTree(dirCtx, searchFilter);
+            searchResults = searchSubTree(dirCtx, searchFilter);
             if (searchResults != null && searchResults.hasMore()) {
 
                 SearchResult sr = (SearchResult) searchResults.next();
@@ -866,6 +876,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         } catch (Exception e) {
             throw new DirServiceException("Failed getting information for organisation ID=" + orgId + ": " + e.toString());
         } finally {
+            closeSearchResults(searchResults);
             closeDirContext(dirCtx);
         }
 
@@ -885,15 +896,14 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
         OrganisationDTO org = new OrganisationDTO();
         String searchFilter = null;
         DirContext dirCtx = null;
-
+        NamingEnumeration searchResults = null;
         try {
             dirCtx = sessionLogin();
 
             searchFilter = "(&(objectclass=groupOfUniqueNames)(cn=" + orgId + "))";
             String[] attrIDs = {"o", "labeleduri"};
 
-            NamingEnumeration searchResults =
-                    searchSubTree(dirCtx, "ou=Organisations", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
+            searchResults = searchSubTree(dirCtx, "ou=Organisations", searchFilter, attrIDs, SearchControls.ONELEVEL_SCOPE);
             if (searchResults != null && searchResults.hasMore()) {
 
                 SearchResult sr = (SearchResult) searchResults.next();
@@ -916,6 +926,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             System.out.println("Failed getting information for organisation ID=" + orgId + ": " + e.toString());
             // throw new DirServiceException("Failed getting information for organisation ID=" + orgId + ": " + e.toString());
         } finally {
+            closeSearchResults(searchResults);
             closeDirContext(dirCtx);
         }
 
@@ -936,6 +947,24 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Closes Search results if value omitted.
+     *
+     * @param searchResults search results container
+     */
+    private void closeSearchResults(NamingEnumeration searchResults) {
+        try {
+            if (searchResults != null) {
+                searchResults.close();
+            }
+        } catch (NamingException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
 
     /**
      * Returns Url of the role site in Eionet Directory.

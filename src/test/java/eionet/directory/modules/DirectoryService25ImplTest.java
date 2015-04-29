@@ -3,14 +3,12 @@ package eionet.directory.modules;
 import eionet.directory.DirServiceException;
 import eionet.directory.DirectoryServiceIF;
 import eionet.directory.dto.OrganisationDTO;
-import org.junit.rules.ExpectedException;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.Hashtable;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -79,4 +77,15 @@ public class DirectoryService25ImplTest extends JNDIAware {
         exception.expectMessage("Cannot connect to : ldap://localhost:40389/");
         Hashtable<String, String> person = ds.getPerson("roug");
     }
+
+    @Test
+    public void getRoleTest() throws Exception {
+        addToTomcatContext("propertiesfile", "target/test-classes/test-ldaps.properties");
+
+        DirectoryService25Impl ds = new DirectoryService25Impl();
+        Hashtable role = ds.getRole("eionet-nfp");
+
+        assertEquals("National Focal Points", role.get("DESCRIPTION"));
+    }
+
 }
