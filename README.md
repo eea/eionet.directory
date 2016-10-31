@@ -44,9 +44,9 @@ For instance, if you use spring configuration you could define:
 
 ```xml
 <bean id="directoryProperties" class="eionet.directory.DynamicProperties">
-    <property name="ldapPrincipal" value="${env.ldap.principal}" />
-    <property name="ldapPassword" value="${env.ldap.password}" />
-    <property name="ldapUrl" value="${env.ldap.url}"/>
+    <property name="ldapPrincipal" value="value_principal" />
+    <property name="ldapPassword" value="value_password" />
+    <property name="ldapUrl" value="value_url"/>
 </bean>
     
 <bean id="directoryPropertiesLoader" class="eionet.directory.DynamicPropertiesLoader">
