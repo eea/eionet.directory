@@ -37,6 +37,7 @@ import javax.naming.Binding;
 import javax.naming.NamingException;
 
 import eionet.directory.DirServiceException;
+import eionet.directory.DynamicPropertiesLoader;
 import eionet.directory.FileService;
 
 /**
@@ -154,5 +155,14 @@ public class FileServiceImpl implements FileService {
                 }
             }
         }
+        
+        //If DynamicProperties object contains property values, these values overwrite anything obtained through file props or JNDI resource.
+        if (DynamicPropertiesLoader.dynamicProperties != null) {
+            Hashtable dynamicProps = DynamicPropertiesLoader.getDynamicProperties();
+            for (Object key : dynamicProps.keySet()) {
+                props.put(key, dynamicProps.get(key));
+            }
+        }
+        
     }
 }
