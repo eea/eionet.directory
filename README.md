@@ -12,7 +12,7 @@ Include this into your maven pom.xml:
 <dependency>
     <groupId>eionet</groupId>
     <artifactId>eionet-dir</artifactId>
-    <version>3.0</version>
+    <version>3.2-SNAPSHOT</version>
 </dependency>
 ```
 
