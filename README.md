@@ -18,7 +18,7 @@ Include this into your maven pom.xml:
 
 Configuration
 -------------
-The package can be configured via JNDI or a properties file. If a environment entry in JNDI is found then all required entries must be configured via JNDI. You configure the application through JNDI with the META-INF/context.xml of the web application using this package. In Tomcat all JNDI names will automatically be prefixed with `java:/comp/env`. Since it is a shared directory, configurations are in the `eionetdir/` sub-context. Example:
+The package can be configured via JNDI, properties file or dependency injection. If a environment entry in JNDI is found then all required entries must be configured via JNDI. You configure the application through JNDI with the META-INF/context.xml of the web application using this package. In Tomcat all JNDI names will automatically be prefixed with `java:/comp/env`. Since it is a shared directory, configurations are in the `eionetdir/` sub-context. Example:
 
 ```xml
 <Context>
@@ -37,6 +37,26 @@ If you want to continue with property files, but specify with JNDI, what file to
                  type="java.lang.String" override="false"/>
 </Context>
 ```
+
+Some environmetal properties can be configured by injecting an object of class eionet.directory.DynamicProperties.
+
+For instance, if you use spring configuration you could define:
+
+```xml
+<bean id="directoryProperties" class="eionet.directory.DynamicProperties">
+    <property name="ldapPrincipal" value="${env.ldap.principal}" />
+    <property name="ldapPassword" value="${env.ldap.password}" />
+    <property name="ldapUrl" value="${env.ldap.url}"/>
+</bean>
+    
+<bean id="directoryPropertiesLoader" class="eionet.directory.DynamicPropertiesLoader">
+    <property name="dynamicProperties" ref="directoryProperties"/>
+</bean>
+```
+
+Alternatively you can use the corresponding static method of the DynamicPropertiesLoader class for setting the DynamicProperties object.
+
+Note that all values defined through the DynamicPropertiesLoader will overwrite all other property values.
 
 Obsolete properties
 -------------------
