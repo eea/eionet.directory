@@ -356,7 +356,14 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
                 RoleDTO dto = new RoleDTO();
                 SearchResult sr = (SearchResult) searchResults.next();
                 String cn = (String) sr.getAttributes().get("cn").get();
-                String description = (String) sr.getAttributes().get("description").get();
+                String description = "";
+                try {
+                    Attribute descAttr = sr.getAttributes().get(roleDesc);
+                    if (descAttr != null) {
+                        description = (String) descAttr.get();
+                    }
+                } catch (NullPointerException ne) {
+                }
 
                 dto.setId(cn);
                 dto.setDescription(description);
