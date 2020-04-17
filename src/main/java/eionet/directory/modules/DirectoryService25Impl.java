@@ -93,7 +93,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
      * parameters from properties files and creating environment
      * properties for DirContext. The initial DirectoryContext uses Connection pooling.
      *
-     * @throws DirServiceException
+     * @throws DirServiceException if something went wrong
      * @see <a href="http://docs.oracle.com/javase/tutorial/jndi/ldap/pool.html">More info about LDAP connection pooling</a>
      */
     public DirectoryService25Impl() throws DirServiceException {
@@ -474,8 +474,8 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
     /**
      * Tries to login with given credentials to the LDAP server.
      *
-     * @param userID
-     * @param userPwd
+     * @param userID user id
+     * @param userPwd password
      * @throws SecurityException if no access, ServiceException
      */
     @Override
@@ -685,7 +685,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
      *
      * @param uId - uid of person.
      * @return MemberDTO
-     * @throws DirServiceException
+     * @throws DirServiceException if something went wrong
      */
     public MemberDTO getMember(String uId) throws DirServiceException {
 
@@ -896,7 +896,7 @@ public class DirectoryService25Impl implements DirectoryServiceIF {
      * @param orgId - the <b>cn</b> of the organisation.
      * @return Always returns an OrganisationDTO instance, but the attributes
      * are null if the organisation isn't found.
-     * @throws DirServiceException
+     * @throws DirServiceException if something went wrong
      */
     public OrganisationDTO getOrganisationDTO(String orgId) throws DirServiceException {
 

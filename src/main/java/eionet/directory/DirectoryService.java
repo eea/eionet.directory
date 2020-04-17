@@ -42,6 +42,10 @@ public class DirectoryService {
 
     /**
      * Email of the role
+     *
+     * @param roleID - the CN attribute for the role in the directory.
+     * @return The email address
+     * @throws DirServiceException if the role doesn't exist.
      */
     public static String getRoleMail(String roleID) throws DirServiceException {
 
@@ -55,6 +59,10 @@ public class DirectoryService {
 
     /**
      * Roles, where the user belongs to
+     *
+     * @param userID the user to look up.
+     * @return a list of roles.
+     * @throws DirServiceException if something failed.
      */
     public static Vector<String> getRoles(String userID) throws DirServiceException {
 
@@ -67,7 +75,11 @@ public class DirectoryService {
     }
 
     /**
+     * Get a role object.
      *
+     * @param roleID - the CN attribute for the role in the directory.
+     * @return the attributes of the role as a hashtable
+     * @throws DirServiceException if the role doesn't exist.
      */
     public static Hashtable<String, Object> getRole(String roleID) throws DirServiceException {
 
@@ -82,7 +94,11 @@ public class DirectoryService {
     }
 
     /**
+     * Get a role object.
      *
+     * @param roleID - the CN attribute for the role in the directory.
+     * @return the attributes of the role in a DTO object.
+     * @throws DirServiceException if the role doesn't exist.
      */
     public static RoleDTO getRoleDTO(String roleID) throws DirServiceException {
 
@@ -97,7 +113,10 @@ public class DirectoryService {
     }
 
     /**
-     * returns new instance of DirectoryServiceIF, based on CIRCA version
+     * Get directory service
+     *
+     * @return new instance of DirectoryServiceIF, based on CIRCA version
+     * @throws DirServiceException if the service doesn't exist.
      */
     private static DirectoryServiceIF getDirService() throws DirServiceException {
         return new DirectoryService25Impl();

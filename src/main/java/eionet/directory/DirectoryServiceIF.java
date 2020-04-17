@@ -82,39 +82,56 @@ public interface DirectoryServiceIF {
 
     /**
      * Email of the given role.
+     *
+     * @param roleId - the CN attribute for the role in the directory.
+     * @throws DirServiceException if something went wrong
+     * @return email as a string.
      */
     public String getRoleMailAddress(String roleId) throws DirServiceException;
 
     /**
      * Lookup person with the given uid.
      * Miscellaneous data in a HASH.
+     *
+     * @param uId account name
+     * @return person attributes as a hashtable.
+     * @throws DirServiceException if something went wrong
      */
     public Hashtable<String, String> getPerson(String uId) throws DirServiceException;
 
     /**
      * Role of the given ID.
+     *
+     * @param roleId - the CN attribute for the role in the directory.
+     * @throws DirServiceException if something went wrong
+     * @return role attributes as a hashtable.
      */
     public Hashtable<String, Object> getRole(String roleId) throws DirServiceException;
 
     /**
      * Role of the given ID.
+     *
+     * @param roleId - the CN attribute for the role in the directory.
+     * @throws DirServiceException if something went wrong
+     * @return role attributes as DTO
      */
     public RoleDTO getRoleDTO(String roleId) throws DirServiceException;
 
     /**
      * Login to the LDAP server with credentials.
      *
-     * @param userID
-     * @param userPwd
-     * @throws ServiceException
-     * @throws SecurityException, if login is not allowed
+     * @param userID account id
+     * @param userPwd password
+     * @throws DirServiceException if something went wrong
+     * @throws SecurityException if login is not allowed
      */
     public void sessionLogin(String userID, String userPwd) throws DirServiceException, SecurityException;
 
     /**
      * Returns the roles of the user.
      *
-     * @param userID
+     * @param userID account name
+     * @throws DirServiceException if something went wrong
      * @return Vector, contains role names
      */
     public Vector<String> getRoles(String userID) throws DirServiceException;
@@ -122,22 +139,26 @@ public interface DirectoryServiceIF {
     /**
      * Returns the occupants of the role.
      *
-     * @param roleID
+     * @param roleID role id
+     * @throws DirServiceException if something went wrong
      * @return Vector, contains user (login) names
      */
     public Vector<String> getOccupants(String roleID) throws DirServiceException;
 
     /**
      * Returns the full name of the user.
-     * @param userID
-     * @return String
      *
+     * @param userID account name
+     * @throws DirServiceException if something went wrong
+     * @return Full name as string.
      */
     public String getFullName(String userID) throws DirServiceException;
 
     /**
      * Lists organisation IDs in LDAP Organisation folder.
      * folder specified in eionetdir.properties ldap.organisation.dir
+     * @throws DirServiceException if something went wrong
+     * @return list of organisation names
      */
     public Vector<String> listOrganisations() throws DirServiceException;
 
@@ -150,6 +171,7 @@ public interface DirectoryServiceIF {
      * URL: Url in Circa for members' access
      * @param orgId - the <b>cn</b> of the organisation.
      * @throws DirServiceException if there is no matching organisation.
+     * @return the Organisation in HASH.
      */
     public Hashtable<String, Object> getOrganisation(String orgId) throws DirServiceException;
 
